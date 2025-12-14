@@ -6,7 +6,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 
-namespace ProyectoFinal.DAL
+namespace API.DAL
 {
     public class DBHelper
     {

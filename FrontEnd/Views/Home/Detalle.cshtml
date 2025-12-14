@@ -1,0 +1,69 @@
+﻿@model FrontEnd.Models.Producto
+
+@{
+    ViewBag.Title = Model != null ? Model.Nombre : "Producto No Encontrado";
+}
+
+<div class="container mt-5">
+    @if (Model != null)
+    {
+        <div class="row">
+            <div class="col-md-6">
+                <img src="@Model.ImagenURL" class="img-fluid rounded shadow-lg" alt="@Model.Nombre" style="max-height: 450px; object-fit: contain;">
+
+            </div>
+
+            <div class="col-md-6">
+                <h1 class="display-4 mb-3">@Model.Nombre</h1>
+                <p class="lead text-muted">@Model.Descripcion</p>
+
+                <hr />
+
+                <div class="d-flex align-items-center mb-4">
+                    <h2 class="text-danger font-weight-bold mr-3">Precio: $@Model.PrecioUnitario.ToString("N2")</h2>
+                    @if (Model.Stock > 0)
+                    {
+                        <span class="badge badge-success p-2">¡@Model.Stock en Stock!</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-warning p-2">Fuera de Stock</span>
+                    }
+                </div>
+
+                <ul class="list-unstyled product-details-list">
+                    <li><strong>ID Interno:</strong> @Model.ProductoID</li>
+                    <li><strong>Código de Marca/Proveedor:</strong> @Model.ProveedorID</li>
+                    @* Aquí se podrían añadir propiedades como Marca, Categoría, si existieran en el modelo *@
+                </ul>
+
+                <div class="form-group row mt-4">
+                    <div class="col-md-3">
+                        <input type="number" id="cantidad" class="form-control" value="1" min="1" max="@Model.Stock" @(Model.Stock == 0 ? "disabled" : "")>
+                    </div>
+                    <div class="col-md-9">
+                        <button class="btn btn-lg btn-primary btn-block"
+                                onclick="agregarAlCarrito('@Model.ProductoID', document.getElementById('cantidad').value)"
+                                @(Model.Stock == 0 ? "disabled" : "")>
+                            Añadir al Carrito
+                        </button>
+                    </div>
+                </div>
+
+                <small class="text-info">El carrito se gestiona con JavaScript y llamará a la API de Órdenes al finalizar la compra.</small>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">← Volver al Catálogo</a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger text-center">
+            <h1>Error 404</h1>
+            <p>@ViewBag.Error</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-warning mt-3">Volver al Inicio</a>
+        </div>
+    }
+</div>

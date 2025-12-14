@@ -1,5 +1,5 @@
-﻿using ProyectoFinal.DAL;
-using ProyectoFinal.Models;
+﻿using API.DAL;
+using API.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,9 +8,9 @@ using System.Linq;
 using System.Net;
 using System.Web.Http;
 
-namespace ProyectoFinal.Controllers
+namespace API.Controllers
 {
-    // Modelo simple para la solicitud de compra (Cliente)
+    // Modelo simple para la solicitud de compra
     public class CompraRequest
     {
         public int ProductoID { get; set; }
@@ -23,10 +23,7 @@ namespace ProyectoFinal.Controllers
     {
         private readonly DBHelper db = new DBHelper();
 
-        // =========================================================================
         // Mapeo (Helper Function)
-        // =========================================================================
-
         private List<Producto> MapDataTableToProductos(DataTable dt)
         {
             List<Producto> productos = new List<Producto>();
@@ -48,11 +45,8 @@ namespace ProyectoFinal.Controllers
             return productos;
         }
 
-        // =========================================================================
         // 1. CREAR PRODUCTO (ADMIN)
         // Endpoint: POST api/productos/registrar
-        // =========================================================================
-
         [HttpPost]
         [Route("registrar")]
         public IHttpActionResult RegistrarProducto([FromBody] Producto producto)
@@ -82,11 +76,11 @@ namespace ProyectoFinal.Controllers
                     if (newId > 0)
                     {
                         producto.ProductoID = newId;
-                        return Content(HttpStatusCode.Created, producto); // 201 Created
+                        return Content(HttpStatusCode.Created, producto);
                     }
                     else if (newId == -1)
                     {
-                        return Conflict(); // 409 Conflict (Duplicado)
+                        return Conflict();
                     }
                 }
 
@@ -98,10 +92,7 @@ namespace ProyectoFinal.Controllers
             }
         }
 
-        // =========================================================================
         // 2. LEER PRODUCTOS (LECTURA)
-        // Endpoint: GET api/productos/obtener y GET api/productos/obtener/5
-        // =========================================================================
 
         [HttpGet]
         [Route("obtener")]
@@ -152,10 +143,7 @@ namespace ProyectoFinal.Controllers
             }
         }
 
-        // =========================================================================
         // 3. ACTUALIZAR PRODUCTO (ADMIN)
-        // Endpoint: PUT api/productos/actualizar/5
-        // =========================================================================
 
         [HttpPut]
         [Route("actualizar/{id:int}")]
@@ -194,10 +182,7 @@ namespace ProyectoFinal.Controllers
             }
         }
 
-        // =========================================================================
         // 4. ELIMINAR/DESACTIVAR PRODUCTO (ADMIN)
-        // Endpoint: DELETE api/productos/eliminar/5
-        // =========================================================================
 
         [HttpDelete]
         [Route("eliminar/{id:int}")]
@@ -225,10 +210,7 @@ namespace ProyectoFinal.Controllers
             }
         }
 
-        // =========================================================================
         // 5. DISMINUIR STOCK (CLIENTE/VENTA)
-        // Endpoint: POST api/productos/disminuirstock
-        // =========================================================================
 
         [HttpPost]
         [Route("disminuirstock")]

@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 
-namespace ProyectoFinal.Controllers
+namespace API.Controllers
 {
     public class ValuesController : ApiController
     {

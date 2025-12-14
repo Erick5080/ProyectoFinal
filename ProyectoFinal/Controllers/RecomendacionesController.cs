@@ -1,12 +1,12 @@
-﻿using ProyectoFinal.DAL;
-using ProyectoFinal.Models;
+﻿using API.DAL;
+using API.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Web.Http;
 
-namespace ProyectoFinal.Controllers
+namespace API.Controllers
 {
     [RoutePrefix("api/recomendaciones")]
     public class RecomendacionesController : ApiController

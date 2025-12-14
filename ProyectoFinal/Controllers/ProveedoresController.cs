@@ -1,12 +1,14 @@
-﻿using ProyectoFinal.DAL;
-using ProyectoFinal.Models;
+﻿using API.DAL;
+using API.Models;
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net;
 using System.Web.Http;
 
-namespace ProyectoFinal.Controllers
+namespace API.Controllers
 {
     // Ruta de acceso: /api/proveedores
     [RoutePrefix("api/proveedores")]
@@ -131,7 +133,6 @@ namespace ProyectoFinal.Controllers
                 return InternalServerError(ex);
             }
         }
-        // ... dentro de la clase ProveedoresController ...
 
         // PUT api/proveedores/actualizar/{id}
         [HttpPut]

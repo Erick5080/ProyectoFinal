@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Http;
+﻿using System.Web.Http;
+using System.Web.Http.Cors;
 
-namespace ProyectoFinal
+namespace API
 {
     public static class WebApiConfig
     {
         public static void Register(HttpConfiguration config)
         {
-            // Web API configuration and services
+            // Reemplaza "http://localhost:5000" con la URL y puerto DONDE SE EJECUTARÁ TU NUEVO PROYECTO FRONT-END
 
-            // Web API routes
+            var cors = new EnableCorsAttribute("*", "*", "*"); // Origenes, Encabezados, Métodos
+            config.EnableCors(cors);
+
+            // Configuración y servicios de Web API
+
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(

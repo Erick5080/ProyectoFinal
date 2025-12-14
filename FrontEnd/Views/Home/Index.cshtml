@@ -1,0 +1,50 @@
+﻿@model List<FrontEnd.Models.Producto>
+@{
+    ViewBag.Title = "Inicio - Catálogo de Electrónica";
+    // Recuperamos la lista de productos destacados que el HomeController cargó desde la API
+    List<FrontEnd.Models.Producto> destacados = ViewBag.Destacados as List<FrontEnd.Models.Producto>;
+}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4 text-danger text-center">🔥 Ofertas y Productos Destacados</h2>
+    <hr />
+    <div class="row justify-content-center">
+        @if (destacados != null && destacados.Any())
+        {
+            // Iterar sobre los productos destacados para crear las tarjetas
+            foreach (var producto in destacados.Take(4))
+            {
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm product-card text-center border-danger">
+                        <img class="card-img-top" src="@producto.ImagenURL" alt="@producto.Nombre" style="height: 180px; object-fit: contain; padding: 10px;">
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate">@producto.Nombre</h5>
+                            <h4 class="text-danger">$@producto.PrecioUnitario.ToString("N2")</h4>
+                        </div>
+                        <div class="card-footer bg-light border-top-0">
+                            <button class="btn btn-primary btn-sm btn-block" onclick="agregarAlCarrito('@producto.ProductoID')">Añadir al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted">No se pudieron cargar los productos destacados (Verifique que el API esté corriendo).</div>
+        }
+    </div>
+
+    <hr class="my-5">
+
+    <h2 class="mb-3 text-center">🛒 Explorar Todo Nuestro Catálogo</h2>
+    <div class="row">
+        <div id="catalogo-principal" class="row w-100 mx-auto">
+            <div class="col-12 text-center text-muted loading-text mt-5">Cargando catálogo dinámicamente...</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Scripts/catalogo.js"></script>
+}
