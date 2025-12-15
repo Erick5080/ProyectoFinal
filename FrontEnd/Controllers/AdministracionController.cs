@@ -56,7 +56,6 @@ namespace FrontEnd.Controllers
             }
         }
 
-
         // Muestra el formulario vacío para registrar un nuevo producto.
         [HttpGet]
         public ActionResult RegistrarProducto()
@@ -179,7 +178,33 @@ namespace FrontEnd.Controllers
                 return View(producto);
             }
         }
+        // Función auxiliar para obtener proveedores de la API y prepararlos para el Dropdown
+        private async Task<SelectList> ObtenerListaProveedores()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(API_BASE_URL + "proveedores/obtener");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var proveedores = JsonConvert.DeserializeObject<List<Proveedor>>(content);
+
+                    // Crear SelectList para el Dropdown
+                    return new SelectList(proveedores, "ProveedorID", "Nombre");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejo de errores simplificado
+                System.Diagnostics.Debug.WriteLine($"Error al obtener proveedores: {ex.Message}");
+            }
+            // Retorna lista vacía en caso de error
+            return new SelectList(new List<Proveedor>(), "ProveedorID", "Nombre");
+        }
+
+        // GET: Administracion/RegistrarProducto
         [HttpGet]
+        
         public async Task<ActionResult> VerOrdenes()
         {
             ViewBag.Message = "Listado de Órdenes de Compra";

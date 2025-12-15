@@ -1,0 +1,62 @@
+﻿@model FrontEnd.Models.Proveedor
+
+@{
+    ViewBag.Title = "Editar Proveedor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0"><i class="fas fa-edit"></i> Editando Proveedor: @Model.Nombre (ID: @Model.ProveedorID)</h3>
+                </div>
+                <div class="card-body">
+
+                    @using (Html.BeginForm("Editar", "Proveedores", FormMethod.Post, new { @class = "row g-3" }))
+                     {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger col-12 mb-3" })
+
+                        @* CAMPO CLAVE OCULTO: ID del Proveedor (necesario para el PUT) *@
+                        @Html.HiddenFor(model => model.ProveedorID)
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.Nombre, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.ContactoNombre, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.ContactoNombre, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.ContactoNombre, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.Telefono, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.Telefono, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Telefono, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.Email, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg"><i class="fas fa-save"></i> Guardar Cambios</button>
+                            @Html.ActionLink("Volver al Listado", "Index", "Proveedores", null, new { @class = "btn btn-outline-secondary ms-2" })
+                        </div>
+                     }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
