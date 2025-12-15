@@ -14,8 +14,5 @@ namespace FrontEnd.Controllers
             ViewBag.Title = "Carrito de Compras";
             return View();
         }
-
-        // Si tuvieras una página de "Confirmación de Pago" o similar, iría aquí.
-        // public ActionResult Confirmacion() { ... }
     }
 }

@@ -9,6 +9,7 @@ using System.Text;
 
 namespace FrontEnd.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class ProveedoresController : Controller
     {
         private readonly string API_BASE_URL = ConfigurationManager.AppSettings["ApiBaseUrl"];

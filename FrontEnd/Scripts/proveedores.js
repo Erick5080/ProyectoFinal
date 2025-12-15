@@ -1,4 +1,4 @@
-﻿const API_BASE_URL = 'https://localhost:XXXXX/api/';
+﻿const API_BASE_URL = 'https://localhost:44389/api/';
 
 /**
  * Función para eliminar un proveedor haciendo una llamada DELETE a la API.

@@ -66,9 +66,10 @@
                                             <span>$@Convert.ToDecimal(orden["Total"]).ToString("N2")</span>
                                         }
                                     </td>
-                                    <td>
-                                        {{-- Aquí podrías tener un botón para ver los detalles de la orden --}}
-                                        <button class="btn btn-info btn-sm" disabled>Ver Detalles</button>
+                                    <td><button class="btn btn-info btn-sm"
+                                            onclick="location.href='@Url.Action("VerDetalles", "Administracion", new { id = orden["OrdenID"] })'">
+                                        <i class="fas fa-search"></i> Ver Detalles
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -78,7 +79,6 @@
             </div>
         </div>
     }
-    @* Si el modelo es nulo O la lista está vacía *@
     @if (Model == null || !Model.Any())
     {
         <div class="alert alert-warning text-center">

@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 
 namespace FrontEnd.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdministracionController : Controller
     {
         private readonly string API_BASE_URL = ConfigurationManager.AppSettings["ApiBaseUrl"];
@@ -237,6 +238,50 @@ namespace FrontEnd.Controllers
             {
                 ModelState.AddModelError("", $"Error de conexión con la API: {ex.Message}");
                 return View(new List<Dictionary<string, object>>());
+            }
+        }
+        [HttpGet]
+        public async Task<ActionResult> VerDetalles(int id)
+        {
+            try
+            {
+                // 1. Obtener Encabezado de la Orden (Datos principales)
+                var headerResponse = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/obtener/{id}");
+                if (!headerResponse.IsSuccessStatusCode)
+                {
+                    TempData["ErrorMessage"] = $"Orden ID {id} no encontrada o error al cargar encabezado.";
+                    return RedirectToAction("VerOrdenes");
+                }
+                var headerContent = await headerResponse.Content.ReadAsStringAsync();
+                var ordenHeader = JsonConvert.DeserializeObject<Dictionary<string, object>>(headerContent);
+
+                // 2. Obtener Detalles de la Orden (Productos)
+                var detailsResponse = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/detalles/{id}");
+
+                List<DetalleOrden> detalles = new List<DetalleOrden>();
+                if (detailsResponse.IsSuccessStatusCode)
+                {
+                    var detailsContent = await detailsResponse.Content.ReadAsStringAsync();
+                    detalles = JsonConvert.DeserializeObject<List<DetalleOrden>>(detailsContent);
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Advertencia: No se pudieron cargar los productos (detalles) de la orden.");
+                }
+
+                var viewModel = new OrdenDetallesViewModel
+                {
+                    Orden = ordenHeader,
+                    Detalles = detalles
+                };
+
+                ViewBag.Title = $"Detalles de Orden #{id}";
+                return View(viewModel);
+            }
+            catch (HttpRequestException ex)
+            {
+                TempData["ErrorMessage"] = $"Error de conexión con la API: {ex.Message}";
+                return RedirectToAction("VerOrdenes");
             }
         }
     }

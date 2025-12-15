@@ -1,7 +1,7 @@
 ﻿
 // Obtener la URL base del API. Usamos una variable global definida en el layout 
 // o una constante aquí (tendrás que actualizar el puerto real en esta línea).
-const API_BASE_URL = 'https://localhost:XXXXX/api/';
+const API_BASE_URL = 'https://localhost:44389/api/';
 
 // Función para desactivar un producto
 async function desactivarProducto(productoId, nombreProducto) {

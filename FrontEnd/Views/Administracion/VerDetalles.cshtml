@@ -1,0 +1,87 @@
+﻿@model FrontEnd.Models.OrdenDetallesViewModel
+
+@{
+    ViewBag.Title = "Detalles de Orden";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    // Helper para formatear datos del Dictionary
+    object GetValue(string key) => Model.Orden.ContainsKey(key) ? Model.Orden[key] : null;
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Detalles de Orden #@GetValue("OrdenID")</h2>
+    <hr />
+
+    @Html.ValidationSummary(false, "", new { @class = "alert alert-warning" })
+
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Información General</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Fecha de Orden:</strong>
+                    @if (GetValue("FechaOrden") != null)
+                    {
+                        <span>@Convert.ToDateTime(GetValue("FechaOrden")).ToString("dd/MM/yyyy HH:mm")</span>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <strong>Cliente ID:</strong>
+                    <span>@GetValue("ClienteID")</span>
+                </div>
+                <div class="col-md-6">
+                    <strong>Estado:</strong>
+                    <span class="badge bg-success">Completada</span> @* Asumiendo un estado simple *@
+                </div>
+                <div class="col-md-6">
+                    <strong>TOTAL Pagado:</strong>
+                    @if (GetValue("Total") != null)
+                    {
+                        <span class="fs-4 text-primary">$@Convert.ToDecimal(GetValue("Total")).ToString("N2")</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4>Productos Vendidos</h4>
+    @if (Model.Detalles != null && Model.Detalles.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID Producto</th>
+                        <th>@Html.DisplayNameFor(m => m.Detalles[0].NombreProducto)</th>
+                        <th>@Html.DisplayNameFor(m => m.Detalles[0].Cantidad)</th>
+                        <th>@Html.DisplayNameFor(m => m.Detalles[0].PrecioUnitario)</th>
+                        <th>@Html.DisplayNameFor(m => m.Detalles[0].SubTotal)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var detalle in Model.Detalles)
+                    {
+                        <tr>
+                            <td>@detalle.ProductoID</td>
+                            <td>@detalle.NombreProducto</td>
+                            <td>@detalle.Cantidad</td>
+                            <td>@detalle.PrecioUnitario.ToString("C2")</td>
+                            <td>@detalle.SubTotal.ToString("C2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            Esta orden no tiene productos registrados en los detalles.
+        </div>
+    }
+
+    <div class="mt-4">
+        @Html.ActionLink("Volver al Listado de Órdenes", "VerOrdenes", "Administracion", null, new { @class = "btn btn-secondary" })
+    </div>
+</div>

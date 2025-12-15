@@ -1,4 +1,4 @@
-﻿const API_BASE_URL = 'https://localhost:XXXXX/api';
+﻿const API_BASE_URL = 'https://localhost:44389/api';
 
 // A. FUNCIÓN PARA CREAR LA TARJETA DE PRODUCTO
 function crearTarjetaProducto(producto) {
