@@ -1,0 +1,85 @@
+﻿@model FrontEnd.Models.Producto
+
+@{
+    ViewBag.Title = "Editar Producto";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0"><i class="fas fa-edit"></i> Editando: @Model.Nombre (ID: @Model.ProductoID)</h3>
+                </div>
+                <div class="card-body">
+
+                    @using (Html.BeginForm("EditarProducto", "Administracion", FormMethod.Post, new { @class = "row g-3" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger col-12 mb-3" })
+
+                        @* CAMPO CLAVE OCULTO: ID del Producto (necesario para el PUT) *@
+                        @Html.HiddenFor(model => model.ProductoID)
+
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.ProveedorID, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.ProveedorID, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.ProveedorID, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-8">
+                            @Html.LabelFor(model => model.Nombre, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.PrecioUnitario, new { @class = "form-label" })
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                @Html.EditorFor(model => model.PrecioUnitario, new { htmlAttributes = new { @class = "form-control" } })
+                            </div>
+                            @Html.ValidationMessageFor(model => model.PrecioUnitario, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.Stock, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.Stock, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Stock, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-12">
+                            @Html.LabelFor(model => model.ImagenURL, new { @class = "form-label" })
+                            @Html.EditorFor(model => model.ImagenURL, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.ImagenURL, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-12">
+                            @Html.LabelFor(model => model.Descripcion, new { @class = "form-label" })
+                            @Html.TextAreaFor(model => model.Descripcion, 5, 80, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <div class="form-check">
+                                @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input" })
+                                @Html.LabelFor(model => model.Activo, new { @class = "form-check-label" })
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg"><i class="fas fa-save"></i> Guardar Cambios</button>
+                            @Html.ActionLink("Volver al Panel", "Index", "Administracion", null, new { @class = "btn btn-outline-secondary ms-2" })
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

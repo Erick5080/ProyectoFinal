@@ -16,16 +16,38 @@
             foreach (var producto in destacados.Take(4))
             {
                 <div class="col-lg-3 col-md-6 mb-4">
+                    {{-- INICIO: Tarjeta Destacada --}}
                     <div class="card h-100 shadow-sm product-card text-center border-danger">
-                        <img class="card-img-top" src="@producto.ImagenURL" alt="@producto.Nombre" style="height: 180px; object-fit: contain; padding: 10px;">
+
+                        {{-- 1. Enlace a la Vista Detalle --}}
+                        <a href="@Url.Action("Detalle", "Home", new { id = producto.ProductoID })"
+                           class="text-decoration-none text-dark d-block">
+                            <img class="card-img-top"
+                                 src="@producto.ImagenURL"
+                                 alt="@producto.Nombre"
+                                 style="height: 180px; object-fit: contain; padding: 10px;">
+                        </a>
+
                         <div class="card-body">
-                            <h5 class="card-title text-truncate">@producto.Nombre</h5>
+                            <h5 class="card-title text-truncate">
+                                {{-- El nombre también es un enlace --}}
+                                <a href="@Url.Action("Detalle", "Home", new { id = producto.ProductoID })"
+                                   class="text-decoration-none text-dark">
+                                    @producto.Nombre
+                                </a>
+                            </h5>
                             <h4 class="text-danger">$@producto.PrecioUnitario.ToString("N2")</h4>
                         </div>
+
                         <div class="card-footer bg-light border-top-0">
-                            <button class="btn btn-primary btn-sm btn-block" onclick="agregarAlCarrito('@producto.ProductoID')">Añadir al Carrito</button>
+                            {{-- 2. Aseguramos que el ProductoID se pase como número (sin comillas) --}}
+                            <button class="btn btn-primary btn-sm btn-block"
+                                    onclick="agregarAlCarrito(@producto.ProductoID)">
+                                Añadir al Carrito
+                            </button>
                         </div>
                     </div>
+                    {{-- FIN: Tarjeta Destacada --}}
                 </div>
             }
         }
@@ -39,6 +61,7 @@
 
     <h2 class="mb-3 text-center">🛒 Explorar Todo Nuestro Catálogo</h2>
     <div class="row">
+        {{-- Aquí se cargarán dinámicamente el resto de productos vía JS --}}
         <div id="catalogo-principal" class="row w-100 mx-auto">
             <div class="col-12 text-center text-muted loading-text mt-5">Cargando catálogo dinámicamente...</div>
         </div>

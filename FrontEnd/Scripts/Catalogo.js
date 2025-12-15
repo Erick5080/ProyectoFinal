@@ -1,8 +1,6 @@
 ﻿const API_BASE_URL = 'https://localhost:XXXXX/api';
 
-// =================================================================
-// A. FUNCIÓN PARA CREAR LA TARJETA DE PRODUCTO (Genera HTML)
-// =================================================================
+// A. FUNCIÓN PARA CREAR LA TARJETA DE PRODUCTO
 function crearTarjetaProducto(producto) {
     // Utilizamos la misma estructura de tarjeta que en la sección de destacados
     return `
@@ -21,9 +19,7 @@ function crearTarjetaProducto(producto) {
             `;
 }
 
-// =================================================================
-// B. FUNCIÓN PARA CARGAR EL CATÁLOGO COMPLETO (Consumo del GET)
-// =================================================================
+// B. FUNCIÓN PARA CARGAR EL CATÁLOGO COMPLETO
 async function cargarCatalogo() {
     const container = document.getElementById('catalogo-principal');
     container.innerHTML = '<div class="col-12 text-center text-muted">Cargando...</div>';
@@ -56,18 +52,73 @@ async function cargarCatalogo() {
     }
 }
 
-// =================================================================
-// C. FUNCIÓN BÁSICA DE CARRO DE COMPRAS (Simulación)
-// =================================================================
-function agregarAlCarrito(productoId) {
-    // Aquí iría la lógica del Front-End para manejar el carrito (añadir, sumar cantidades).
-    // Luego, al finalizar la compra, se llamaría al endpoint de /ordenes/registrar.
-    alert(`Producto ID ${productoId} añadido al carrito. ¡Listo para la venta!`);
+// C. LÓGICA DEL CARRO DE COMPRAS
+// Constante para la clave del carrito en localStorage
+const CARRITO_KEY = 'eCommerceCarrito';
+
+// Función auxiliar para actualizar el número de productos en el nav
+function actualizarContadorCarrito(totalProductos) {
+    // Necesitarás un elemento en tu layout principal (ej: <span id="contador-carrito">0</span>)
+    const contador = document.getElementById('contador-carrito');
+    if (contador) {
+        contador.innerText = totalProductos;
+    }
 }
 
-// =================================================================
+// Función principal para añadir un producto
+async function agregarAlCarrito(productoId) {
+    // 1. Asumimos una cantidad de 1 por clic en el botón del catálogo
+    const cantidad = 1;
+
+    try {
+        // A. Obtener el precio y otros datos del producto de la API
+        const response = await fetch(`${API_BASE_URL}/productos/obtener/${productoId}`);
+
+        if (!response.ok) {
+            throw new Error(`Producto ${productoId} no encontrado o inactivo.`);
+        }
+
+        const producto = await response.json();
+        const precioUnitarioEnVenta = producto.PrecioUnitario; // Precio fijo en el momento de la venta
+
+        // B. Obtener el carrito actual del localStorage
+        let carrito = JSON.parse(localStorage.getItem(CARRITO_KEY)) || [];
+
+        // C. Verificar si el producto ya está en el carrito
+        const productoExistente = carrito.find(item => item.ProductoID === productoId);
+
+        if (productoExistente) {
+            // Si existe, solo incrementa la cantidad
+            productoExistente.Cantidad += cantidad;
+        } else {
+            // Si no existe, agrégalo al carrito con la información necesaria
+            carrito.push({
+                ProductoID: productoId,
+                Cantidad: cantidad,
+                PrecioUnitarioEnVenta: precioUnitarioEnVenta,
+                Nombre: producto.Nombre, // Útil para mostrar en la vista del carrito
+                ImagenURL: producto.ImagenURL // Útil para mostrar en la vista del carrito
+            });
+        }
+
+        // D. Guardar el carrito actualizado en localStorage
+        localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
+
+        // E. Retroalimentación y actualización del contador
+        alert(`"${producto.Nombre}" añadido al carrito!`);
+        actualizarContadorCarrito(carrito.length);
+
+    } catch (error) {
+        console.error("Error al añadir al carrito:", error);
+        alert(`Hubo un error al añadir el producto al carrito. Detalle: ${error.message}`);
+    }
+}
+
 // D. INICIALIZACIÓN
-// =================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    cargarCatalogo(); // Ejecuta la carga del catálogo cuando la página esté lista
+    cargarCatalogo(); // Ejecuta la carga del catálogo
+
+    // Al cargar la página, inicializa el contador del carrito
+    let carrito = JSON.parse(localStorage.getItem(CARRITO_KEY)) || [];
+    actualizarContadorCarrito(carrito.length);
 });

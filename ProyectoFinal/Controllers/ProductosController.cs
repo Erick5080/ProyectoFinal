@@ -17,7 +17,6 @@ namespace API.Controllers
         public int CantidadComprada { get; set; }
     }
 
-    // RUTA BASE: /api/productos
     [RoutePrefix("api/productos")]
     public class ProductosController : ApiController
     {
@@ -46,7 +45,6 @@ namespace API.Controllers
         }
 
         // 1. CREAR PRODUCTO (ADMIN)
-        // Endpoint: POST api/productos/registrar
         [HttpPost]
         [Route("registrar")]
         public IHttpActionResult RegistrarProducto([FromBody] Producto producto)
@@ -67,6 +65,7 @@ namespace API.Controllers
                     new SqlParameter("@ImagenURL", producto.ImagenURL)
                 };
 
+                // Asumo que PA_InsertarProducto devuelve un DataTable con el ProductoID
                 DataTable result = db.ExecuteDataTable("PA_InsertarProducto", parameters);
 
                 if (result.Rows.Count > 0)
@@ -76,11 +75,11 @@ namespace API.Controllers
                     if (newId > 0)
                     {
                         producto.ProductoID = newId;
-                        return Content(HttpStatusCode.Created, producto);
+                        return Content(HttpStatusCode.Created, producto); // 201 Created
                     }
                     else if (newId == -1)
                     {
-                        return Conflict();
+                        return Conflict(); // 409 Conflict (si hay lógica de negocio que previene el registro)
                     }
                 }
 
@@ -127,6 +126,7 @@ namespace API.Controllers
                     new SqlParameter("@ProductoID", id)
                 };
 
+                // Asumo que PA_ObtenerProductosEnStock con parámetros devuelve solo 1 producto
                 DataTable dt = db.ExecuteDataTable("PA_ObtenerProductosEnStock", parameters);
                 List<Producto> productos = MapDataTableToProductos(dt);
 
@@ -167,6 +167,7 @@ namespace API.Controllers
                     new SqlParameter("@Activo", producto.Activo)
                 };
 
+                // Asumo que PA_ActualizarProducto devuelve un número de filas afectadas
                 DataTable result = db.ExecuteDataTable("PA_ActualizarProducto", parameters);
 
                 if (Convert.ToInt32(result.Rows[0]["RowsAffected"]) > 0)
@@ -195,6 +196,7 @@ namespace API.Controllers
                     new SqlParameter("@ProductoID", id)
                 };
 
+                // Asumo que PA_DesactivarProducto devuelve un número de filas afectadas
                 DataTable result = db.ExecuteDataTable("PA_DesactivarProducto", parameters);
 
                 if (Convert.ToInt32(result.Rows[0]["RowsAffected"]) > 0)
@@ -229,16 +231,16 @@ namespace API.Controllers
                     new SqlParameter("@CantidadComprada", request.CantidadComprada)
                 };
 
+                // Asumo que PA_DisminuirStock devuelve un resultado
                 DataTable result = db.ExecuteDataTable("PA_DisminuirStock", parameters);
 
                 if (Convert.ToInt32(result.Rows[0]["Resultado"]) == 1)
                 {
-                    // 200 OK (El stock se procesó)
                     return Ok(new { Mensaje = "Stock actualizado correctamente tras la compra." });
                 }
                 else
                 {
-                    // 400 Bad Request (Stock insuficiente)
+                    // Manejar lógica de stock insuficiente
                     return BadRequest("Error: Stock insuficiente para procesar la compra.");
                 }
             }
