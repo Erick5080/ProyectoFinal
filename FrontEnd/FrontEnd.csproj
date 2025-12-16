@@ -137,6 +137,7 @@
     <Compile Include="Models\OrdenDetallesViewModel.cs" />
     <Compile Include="Models\Producto.cs" />
     <Compile Include="Models\Proveedor.cs" />
+    <Compile Include="Models\ProveedorViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -196,7 +197,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\Detalle.cshtml" />
     <Content Include="Views\Administracion\RegistrarProducto.cshtml" />
-    <Content Include="Views\Administracion\Index.cshtml" />
+    <Content Include="Views\Administracion\Productos.cshtml" />
     <Content Include="Views\Administracion\EditarProducto.cshtml" />
     <Content Include="Views\Administracion\VerOrdenes.cshtml" />
     <Content Include="Views\Proveedores\Index.cshtml" />
@@ -207,6 +208,10 @@
     <Content Include="Views\Carrito\CompraExitosa.cshtml" />
     <Content Include="Views\Carrito\Index.cshtml" />
     <Content Include="Views\Login\Index.cshtml" />
+    <Content Include="Views\Administracion\Dashboard.cshtml" />
+    <Content Include="Views\Administracion\Proveedores.cshtml" />
+    <Content Include="Views\Administracion\CrearProveedor.cshtml" />
+    <Content Include="Views\Administracion\EditarProveedor.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

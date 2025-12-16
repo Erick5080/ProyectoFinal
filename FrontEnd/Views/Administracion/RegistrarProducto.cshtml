@@ -17,13 +17,13 @@
                     @using (Html.BeginForm("RegistrarProducto", "Administracion", FormMethod.Post, new { @class = "row g-3" }))
                     {
                         @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true, "", new { @class = "text-danger col-12 mb-3" })
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger alert alert-danger col-12 mb-3" })
 
-                    <div class="col-md-4">
-                        @Html.LabelFor(model => model.ProveedorID, new { @class = "form-label" })
-                        @Html.DropDownListFor(model => model.ProveedorID, (SelectList)ViewBag.Proveedores, "--- Seleccionar Proveedor ---", new { @class = "form-control" })
-                        @Html.ValidationMessageFor(model => model.ProveedorID, "", new { @class = "text-danger" })
-                    </div>
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.ProveedorID, new { @class = "form-label" })
+                            @Html.DropDownListFor(model => model.ProveedorID, (SelectList)ViewBag.Proveedores, "--- Seleccionar Proveedor ---", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.ProveedorID, "", new { @class = "text-danger" })
+                        </div>
 
                         <div class="col-md-8">
                             @Html.LabelFor(model => model.Nombre, new { @class = "form-label" })
@@ -35,14 +35,14 @@
                             @Html.LabelFor(model => model.PrecioUnitario, new { @class = "form-label" })
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                @Html.EditorFor(model => model.PrecioUnitario, new { htmlAttributes = new { @class = "form-control" } })
+                                @Html.EditorFor(model => model.PrecioUnitario, new { htmlAttributes = new { @class = "form-control", type = "number", step = "0.01" } })
                             </div>
                             @Html.ValidationMessageFor(model => model.PrecioUnitario, "", new { @class = "text-danger" })
                         </div>
 
                         <div class="col-md-6">
                             @Html.LabelFor(model => model.Stock, new { @class = "form-label" })
-                            @Html.EditorFor(model => model.Stock, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.EditorFor(model => model.Stock, new { htmlAttributes = new { @class = "form-control", type = "number" } })
                             @Html.ValidationMessageFor(model => model.Stock, "", new { @class = "text-danger" })
                         </div>
 
@@ -58,11 +58,15 @@
                             @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
                         </div>
 
-                        @Html.HiddenFor(model => model.Activo, new { @value = true })
+                        <div class="col-12 form-check mt-3">
+                            @Html.CheckBoxFor(model => model.Activo, new { @class = "form-check-input" })
+                            @Html.LabelFor(model => model.Activo, new { @class = "form-check-label" })
+                        </div>
 
                         <div class="col-12 mt-4">
                             <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-save"></i> Guardar Producto</button>
-                            @Html.ActionLink("Volver a Lista", "Index", "Administracion", null, new { @class = "btn btn-outline-secondary ms-2" })
+
+                            @Html.ActionLink("Volver a Lista", "Productos", "Administracion", null, new { @class = "btn btn-outline-secondary ms-2" })
                         </div>
                     }
 

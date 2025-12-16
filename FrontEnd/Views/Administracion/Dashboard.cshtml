@@ -1,0 +1,60 @@
+﻿@{
+    ViewBag.Title = "Dashboard Administrativo";
+    // Si tienes un layout específico para el admin, úsalo aquí.
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="jumbotron bg-light p-5 rounded-3 shadow">
+        <h1 class="display-4"><i class="fas fa-tools"></i> Panel de Administración</h1>
+        <p class="lead">@ViewBag.Message</p>
+        <hr class="my-4">
+        <p>Conectado como: <strong>@ViewBag.UserName</strong></p>
+
+        <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cube fa-4x text-primary mb-3"></i>
+                        <h5 class="card-title">Gestión de Productos</h5>
+                        <p class="card-text">Inventario, precios y stock.</p>
+                        <a href="@Url.Action("Productos", "Administracion")" class="btn btn-primary">
+                            Ir a Productos
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-success">
+                    <div class="card-body text-center">
+                        <i class="fas fa-truck fa-4x text-success mb-3"></i>
+                        <h5 class="card-title">Gestión de Proveedores</h5>
+                        <p class="card-text">Crear, modificar y eliminar proveedores.</p>
+                        <a href="@Url.Action("Proveedores", "Administracion")" class="btn btn-success">
+                            Ir a Proveedores
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-warning">
+                    <div class="card-body text-center">
+                        <i class="fas fa-list-alt fa-4x text-warning mb-3"></i>
+                        <h5 class="card-title">Órdenes de Compra</h5>
+                        <p class="card-text">Revisar y gestionar pedidos de clientes.</p>
+                        <a href="@Url.Action("VerOrdenes", "Administracion")" class="btn btn-warning text-white">
+                            Ir a Órdenes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+        <a href="@Url.Action("Logout", "Login")" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </a>
+    </div>
+</div>
