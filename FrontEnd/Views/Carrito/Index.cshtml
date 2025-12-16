@@ -1,0 +1,90 @@
+﻿@model List<FrontEnd.Models.CarritoItem>
+
+@{
+    ViewBag.Title = "Carrito de Compras";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">🛍️ @ViewBag.Title</h2>
+    <hr />
+
+    @if (Model != null && Model.Any())
+    {
+        <table class="table table-hover table-responsive">
+            <thead class="table-primary">
+                <tr>
+                    <th style="width: 50%;">Producto</th>
+                    <th style="width: 15%;" class="text-end">Precio Unitario</th>
+                    <th style="width: 15%;" class="text-center">Cantidad</th>
+                    <th style="width: 15%;" class="text-end">Subtotal</th>
+                    <th style="width: 5%;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr data-product-id="@item.ProductoID">
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Nombre)
+                        </td>
+                        <td class="text-end">
+                            @item.PrecioUnitario.ToString("C")
+                        </td>
+                        <td class="text-center">
+                            <input type="number"
+                                   data-id="@item.ProductoID"
+                                   value="@item.Cantidad"
+                                   min="1"
+                                   class="form-control form-control-sm text-center quantity-input"
+                                   style="width: 80px; display: inline-block;" />
+                        </td>
+                        <td class="text-end fw-bold">
+                            <span class="item-subtotal">@item.Subtotal.ToString("C")</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-sm btn-remove-item" data-id="@item.ProductoID">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                @{
+                    decimal totalCompra = Model.Sum(i => i.Subtotal);
+                }
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">TOTAL DE LA COMPRA:</td>
+                    <td class="text-end fw-bolder fs-5 text-success">
+                        <span id="total-compra">@totalCompra.ToString("C")</span>
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Continuar Comprando
+            </a>
+            <a href="@Url.Action("Finalizar", "Carrito")" class="btn btn-success btn-lg">
+                <i class="fas fa-money-check-alt"></i> Finalizar Compra
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            Su carrito de compras está vacío.
+            <br /><br />
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                Ir al Catálogo
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="@Url.Content("~/Scripts/carrito.js")"></script>
+}

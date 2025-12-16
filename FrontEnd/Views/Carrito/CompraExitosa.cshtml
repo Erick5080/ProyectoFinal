@@ -1,0 +1,19 @@
+﻿@{
+    ViewBag.Title = "Compra Exitosa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card text-center border-success shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h2>¡Pedido Realizado con Éxito!</h2>
+        </div>
+        <div class="card-body">
+            <h1 class="text-success"><i class="fas fa-check-circle fa-3x mb-3"></i></h1>
+            <p class="lead">Hemos recibido su orden. En breve recibirá un correo electrónico con los detalles y la confirmación del envío.</p>
+            <p>Gracias por su compra en nuestra tienda de electrónica.</p>
+            <hr>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg">Volver al Catálogo</a>
+        </div>
+    </div>
+</div>
