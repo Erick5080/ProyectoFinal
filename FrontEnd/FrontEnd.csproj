@@ -124,6 +124,7 @@
     <Compile Include="Controllers\AdministracionController.cs" />
     <Compile Include="Controllers\CarritoController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\ProveedoresController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -131,6 +132,7 @@
     <Compile Include="Models\CarritoItem.cs" />
     <Compile Include="Models\CheckoutViewModel.cs" />
     <Compile Include="Models\DetalleOrden.cs" />
+    <Compile Include="Models\LoginModel.cs" />
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\OrdenDetallesViewModel.cs" />
     <Compile Include="Models\Producto.cs" />
@@ -204,6 +206,7 @@
     <Content Include="Views\Carrito\Finalizar.cshtml" />
     <Content Include="Views\Carrito\CompraExitosa.cshtml" />
     <Content Include="Views\Carrito\Index.cshtml" />
+    <Content Include="Views\Login\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

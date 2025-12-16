@@ -17,7 +17,6 @@ namespace FrontEnd.Controllers
     public class CarritoController : Controller
     {
         private const string SESSION_KEY = "CarritoSesion";
-        // Asegúrate que tu AppSettings["ApiBaseUrl"] termina en /
         private readonly string API_BASE_URL = ConfigurationManager.AppSettings["ApiBaseUrl"];
         private readonly HttpClient _httpClient;
 
