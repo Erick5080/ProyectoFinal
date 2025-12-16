@@ -1,0 +1,91 @@
+﻿@model FrontEnd.Models.CheckoutViewModel
+
+@{
+    ViewBag.Title = "Finalizar Compra";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    // Obtenemos los ítems del carrito y el total que pasamos del controlador
+    List<FrontEnd.Models.CarritoItem> carritoItems = ViewBag.CarritoItems;
+    decimal total = ViewBag.Total;
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">💳 Finalizar Compra y Datos de Envío</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card bg-light p-3 mb-4">
+                <h4 class="card-title">Resumen de la Orden</h4>
+                <ul class="list-group list-group-flush">
+                    @foreach (var item in carritoItems)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @item.Nombre
+                            <span class="badge bg-secondary">@item.Cantidad x @item.PrecioUnitario.ToString("C")</span>
+                        </li>
+                    }
+                </ul>
+                <div class="card-footer mt-3 d-flex justify-content-between">
+                    <h5 class="mb-0">Total Final:</h5>
+                    <h5 class="mb-0 text-success fw-bold">@total.ToString("C")</h5>
+                </div>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">
+                    <strong>¡Error!</strong> @ViewBag.Error
+                </div>
+            }
+        </div>
+
+        <div class="col-md-7">
+            <h4>Datos de Contacto y Envío</h4>
+            @using (Html.BeginForm("ConfirmarCompra", "Carrito", FormMethod.Post, new { role = "form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        @Html.LabelFor(model => model.NombreCompleto, new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.NombreCompleto, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.NombreCompleto, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        @Html.LabelFor(model => model.Email, new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.Email, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.Direccion, new { @class = "form-label" })
+                    @Html.TextBoxFor(model => model.Direccion, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.Direccion, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        @Html.LabelFor(model => model.Ciudad, new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.Ciudad, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.Ciudad, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        @Html.LabelFor(model => model.CodigoPostal, new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.CodigoPostal, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.CodigoPostal, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <p class="text-muted small">Al presionar "Confirmar y Pagar", se registrará su pedido.</p>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-check-circle"></i> Confirmar y Pagar
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -128,6 +128,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\CheckoutViewModel.cs" />
     <Compile Include="Models\DetalleOrden.cs" />
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\OrdenDetallesViewModel.cs" />
@@ -163,6 +164,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <Content Include="Scripts\carrito.js" />
     <Content Include="Scripts\Catalogo.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -198,11 +200,11 @@
     <Content Include="Views\Proveedores\Editar.cshtml" />
     <Content Include="Views\Administracion\VerDetalles.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Carrito\Finalizar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Images\" />
-    <Folder Include="Views\Carrito\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
