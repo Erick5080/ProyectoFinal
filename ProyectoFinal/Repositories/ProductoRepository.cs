@@ -31,8 +31,7 @@ namespace API.Repositories
         public List<Producto> GetAllProductos()
         {
             List<Producto> productos = new List<Producto>();
-            // Asegúrate que este SP exista: SP_ListarProductos
-            DataTable dt = _dbHelper.ExecuteDataTable("SP_ListarProductos");
+            DataTable dt = _dbHelper.ExecuteDataTable("PA_ListarProductos");
 
             foreach (DataRow row in dt.Rows)
             {
@@ -48,8 +47,7 @@ namespace API.Repositories
             {
                 new SqlParameter("@ProductoID", id)
             };
-            // Asegúrate que este SP exista: SP_ObtenerProductoPorId
-            DataTable dt = _dbHelper.ExecuteDataTable("SP_ObtenerProductoPorId", parameters);
+            DataTable dt = _dbHelper.ExecuteDataTable("PA_ObtenerProductoPorId", parameters);
 
             if (dt.Rows.Count == 1)
             {
@@ -69,8 +67,7 @@ namespace API.Repositories
                 new SqlParameter("@Stock", producto.Stock),
                 new SqlParameter("@Activo", producto.Activo)
             };
-            // Asegúrate que este SP exista: SP_InsertarProducto
-            return _dbHelper.ExecuteNonQuery("SP_InsertarProducto", parameters);
+            return _dbHelper.ExecuteNonQuery("PA_InsertarProducto", parameters);
         }
 
         // 4. ACTUALIZAR (usado por /Administracion/EditarProducto)
@@ -85,8 +82,7 @@ namespace API.Repositories
                 new SqlParameter("@Stock", producto.Stock),
                 new SqlParameter("@Activo", producto.Activo)
             };
-            // Asegúrate que este SP exista: SP_ActualizarProducto
-            return _dbHelper.ExecuteNonQuery("SP_ActualizarProducto", parameters);
+            return _dbHelper.ExecuteNonQuery("PA_ActualizarProducto", parameters);
         }
 
         // 5. ELIMINAR (o desactivar)
@@ -96,8 +92,7 @@ namespace API.Repositories
             {
                 new SqlParameter("@ProductoID", id)
             };
-            // Puedes usar SP_EliminarProducto o SP_DesactivarProducto
-            return _dbHelper.ExecuteNonQuery("SP_EliminarProducto", parameters);
+            return _dbHelper.ExecuteNonQuery("PA_EliminarProducto", parameters);
         }
     }
 }

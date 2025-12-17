@@ -32,13 +32,15 @@ namespace API.Controllers
                 {
                     ProductoID = Convert.ToInt32(row["ProductoID"]),
                     Nombre = row["Nombre"].ToString(),
-                    Descripcion = row["Descripcion"].ToString(),
+                    Descripcion = row["Descripcion"] != DBNull.Value ? row["Descripcion"].ToString() : "",
                     PrecioUnitario = Convert.ToDecimal(row["PrecioUnitario"]),
                     Stock = Convert.ToInt32(row["Stock"]),
-                    FechaRegistro = Convert.ToDateTime(row["FechaRegistro"]),
-                    ImagenURL = row["ImagenURL"].ToString(),
-                    VentasAcumuladas = Convert.ToInt32(row["VentasAcumuladas"]),
-                    Activo = Convert.ToBoolean(row["Activo"])
+                    // Usamos verificaciones para columnas opcionales o que podrían faltar
+                    FechaRegistro = dt.Columns.Contains("FechaRegistro") && row["FechaRegistro"] != DBNull.Value
+                                    ? Convert.ToDateTime(row["FechaRegistro"]) : DateTime.Now,
+                    ImagenURL = row["ImagenURL"] != DBNull.Value ? row["ImagenURL"].ToString() : "",
+                    VentasAcumuladas = dt.Columns.Contains("VentasAcumuladas") ? Convert.ToInt32(row["VentasAcumuladas"]) : 0,
+                    Activo = dt.Columns.Contains("Activo") ? Convert.ToBoolean(row["Activo"]) : true
                 });
             }
             return productos;

@@ -7,8 +7,6 @@ namespace API
     {
         public static void Register(HttpConfiguration config)
         {
-            // Reemplaza "http://localhost:5000" con la URL y puerto DONDE SE EJECUTARÁ TU NUEVO PROYECTO FRONT-END
-
             var cors = new EnableCorsAttribute("*", "*", "*"); // Origenes, Encabezados, Métodos
             config.EnableCors(cors);
 

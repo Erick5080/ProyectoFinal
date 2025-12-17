@@ -26,7 +26,7 @@ async function cargarCatalogo() {
 
     try {
         // Llama al endpoint de productos activos
-        const response = await fetch(`${API_BASE_URL}/productos/obtener`);
+        const response = await fetch(`${API_BASE_URL}/api/productos/obtener`);
 
         if (response.status === 404) {
             container.innerHTML = '<div class="col-12 text-center text-danger">No se encontraron productos activos.</div>';
