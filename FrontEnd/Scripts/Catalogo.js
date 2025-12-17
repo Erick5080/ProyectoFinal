@@ -96,6 +96,9 @@ async function agregarAlCarrito(productoId) {
         localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
         alert(`"${producto.Nombre}" añadido!`);
         actualizarContadorCarrito(carrito.length);
+        actualizarGlobalCarrito();
+
+        alert("Producto añadido correctamente");
 
     } catch (error) {
         console.error("Error al añadir al carrito:", error);
