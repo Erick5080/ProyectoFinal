@@ -20,27 +20,23 @@ namespace API.Repositories
 
             SqlParameter[] parameters = new SqlParameter[]
             {
-                new SqlParameter("@Email", email),
-                new SqlParameter("@Password", password) 
+        new SqlParameter("@Correo", email), 
+        new SqlParameter("@Clave", password)
             };
 
-            // Ejecuta la consulta y obtiene el resultado
             DataTable dt = _dbHelper.ExecuteDataTable(storedProcedure, parameters);
 
             if (dt.Rows.Count == 1)
             {
-                // Mapear la primera fila del DataTable a un objeto Administrador
                 DataRow row = dt.Rows[0];
                 return new Administrador
                 {
-                    AdminID = Convert.ToInt32(row["AdminID"]),
-                    Nombre = row["Nombre"].ToString(),
+                    AdminID = Convert.ToInt32(row["UsuarioID"]),
+                    Nombre = row["NombreCompleto"].ToString(),
                     Email = row["Email"].ToString(),
-                    Rol = row["Rol"].ToString(),
-                    Activo = Convert.ToBoolean(row["Activo"])
                 };
             }
-            return null; // Credenciales inválidas o administrador no encontrado
+            return null;
         }
     }
 }

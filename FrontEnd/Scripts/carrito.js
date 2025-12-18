@@ -1,23 +1,23 @@
-﻿// LÓGICA DE CARRITO - FrontEnd/Scripts/carrito.js
+﻿// FrontEnd/Scripts/carrito.js
 
 $(document).ready(function () {
-    
-    // --- 1. Lógica para AÑADIR al Carrito desde el Catálogo ---
-    // Selector: Se usa la clase 'btn-add-to-cart' definida en el Catálogo
-    $('.btn-add-to-cart').click(function () {
+    const URL_BASE = window.location.origin;
+
+    // --- 1. AGREGAR PRODUCTO (Desde el Catálogo) ---
+    // Usamos delegación de eventos $(document).on para que funcione incluso si 
+    // los productos se cargan dinámicamente después de que la página cargue.
+    $(document).on('click', '.btn-add-to-cart', function (e) {
+        e.preventDefault();
         
-        var button = $(this); // Referencia al botón clicado
+        var button = $(this);
         var productId = button.data('product-id');
         var quantity = 1; 
 
-        // Deshabilitar botón temporalmente
+        // Feedback visual inmediato
         button.prop('disabled', true).text('Agregando...');
 
-        // NOTA: Usamos window.location.origin para asegurar la URL base
-        var url = window.location.origin + '/Carrito/Agregar'; 
-
         $.ajax({
-            url: url,
+            url: URL_BASE + '/Carrito/Agregar',
             type: 'POST',
             data: {
                 productoId: productId,
@@ -25,125 +25,94 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response.success) {
-                    // 1. Mostrar confirmación visual
-                    button.text('¡Agregado!');
+                    // Actualiza el numerito del carrito en el navbar (ID en tu layout)
+                    // Según tu main.js el ID es 'contador-carrito'
+                    $('#contador-carrito').text(response.count);
                     
-                    // 2. Actualizar contador del carrito en la barra de navegación
-                    // (Necesitas un elemento con ID 'cart-count' en tu _Layout)
-                    $('#cart-count').text(response.count);
-
-                    // Reestablecer el botón
+                    button.addClass('btn-success').removeClass('btn-primary').text('¡Agregado!');
+                    
                     setTimeout(function() {
-                        button.html('<i class="fas fa-cart-plus"></i> Añadir al Carrito').prop('disabled', false);
-                    }, 1000);
-
+                        button.prop('disabled', false)
+                              .addClass('btn-primary')
+                              .removeClass('btn-success')
+                              .html('<i class="fas fa-cart-plus"></i> Añadir al Carrito');
+                    }, 1500);
                 } else {
-                    alert('Error al agregar el producto: ' + response.message);
-                    button.html('<i class="fas fa-cart-plus"></i> Añadir al Carrito').prop('disabled', false);
+                    alert('Error: ' + response.message);
+                    button.prop('disabled', false).text('Reintentar');
                 }
             },
-            error: function (xhr, status, error) {
-                alert("Hubo un error de conexión con el servidor.");
-                console.error(error);
-                button.html('<i class="fas fa-cart-plus"></i> Añadir al Carrito').prop('disabled', false);
+            error: function () {
+                alert("Error de comunicación con el servidor al agregar.");
+                button.prop('disabled', false).text('Añadir al Carrito');
             }
         });
     });
 
-    // --- 2. Lógica para ACTUALIZAR Cantidad en la Vista del Carrito (/Carrito/Index)
-    $('.quantity-input').change(function () {
+    // --- 2. ACTUALIZAR CANTIDAD (Desde la Vista del Carrito /Carrito/Index) ---
+    $(document).on('change', '.quantity-input', function () {
+        var input = $(this);
+        var productId = input.data('id');
+        var newQuantity = parseInt(input.val());
 
-        // Se dispara cuando el valor del input de cantidad cambia
-        $(document).on('change', '.quantity-input', function () {
-            var input = $(this);
-            var productId = input.data('id');
-            var newQuantity = parseInt(input.val());
+        if (isNaN(newQuantity) || newQuantity < 1) {
+            newQuantity = 1;
+            input.val(1);
+        }
 
-            // Validación básica: no permitir cantidades negativas o no numéricas
-            if (isNaN(newQuantity) || newQuantity < 1) {
-                newQuantity = 1;
-                input.val(1);
+        $.ajax({
+            url: URL_BASE + '/Carrito/ActualizarCantidad',
+            type: 'POST',
+            data: {
+                productoId: productId,
+                cantidad: newQuantity
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Actualizar subtotal de la fila y total general
+                    var row = input.closest('tr');
+                    row.find('.item-subtotal').text(response.newItemSubtotalText);
+                    $('#total-compra').text(response.newTotalText);
+                    $('#contador-carrito').text(response.newCount);
+
+                    if (newQuantity === 0) {
+                        window.location.reload();
+                    }
+                } else {
+                    alert(response.message);
+                }
             }
+        });
+    });
 
-            // Llamada AJAX para actualizar
-            $.ajax({
-                url: window.location.origin + '/Carrito/ActualizarCantidad',
-                type: 'POST',
-                data: {
-                    productoId: productId,
-                    cantidad: newQuantity
-                },
-                success: function (response) {
-                    if (response.success) {
-                        // Actualizar el subtotal de la fila
-                        var row = input.closest('tr');
-                        row.find('.item-subtotal').text(response.newItemSubtotalText);
+    // --- 3. ELIMINAR PRODUCTO (Desde la Vista del Carrito /Carrito/Index) ---
+    $(document).on('click', '.btn-remove-item', function (e) {
+        e.preventDefault();
+        var button = $(this);
+        var productId = button.data('id');
 
-                        // Actualizar el total de la compra en el pie de página
-                        $('#total-compra').text(response.newTotalText);
+        if (!confirm("¿Eliminar este producto del carrito?")) return;
 
-                        // Actualizar el contador global del carrito
-                        $('#cart-count').text(response.newCount);
-
-                        // Si la cantidad es 0, recargar para eliminar la fila si la lógica del controlador lo permite
-                        if (newQuantity === 0) {
+        $.ajax({
+            url: URL_BASE + '/Carrito/Eliminar',
+            type: 'POST',
+            data: { productoId: productId },
+            success: function (response) {
+                if (response.success) {
+                    // Eliminar fila con efecto
+                    button.closest('tr').fadeOut(300, function () {
+                        $(this).remove();
+                        
+                        // Si ya no hay productos, recargar para mostrar mensaje de "Carrito Vacío"
+                        if ($('.btn-remove-item').length === 0) {
                             window.location.reload();
+                        } else {
+                            $('#total-compra').text(response.newTotalText);
+                            $('#contador-carrito').text(response.newCount);
                         }
-                    } else {
-                        alert('Error al actualizar la cantidad: ' + response.message);
-                    }
-                },
-                error: function () {
-                    alert("Error de conexión al actualizar.");
+                    });
                 }
-            });
-        });
-
-        // --- 3. Lógica para ELIMINAR Item en la Vista del Carrito (/Carrito/Index) ---
-        // Se dispara al hacer clic en el botón de la papelera
-        $('.btn-remove-item').click(function () {
-
-        $(document).on('click', '.btn-remove-item', function () {
-            if (!confirm("¿Está seguro de que desea eliminar este producto del carrito?")) {
-                return;
             }
-
-            var button = $(this);
-            var productId = button.data('id');
-
-            // Llamada AJAX para eliminar
-            $.ajax({
-                url: window.location.origin + '/Carrito/Eliminar',
-                type: 'POST',
-                data: {
-                    productoId: productId
-                },
-                success: function (response) {
-                    if (response.success) {
-                        // Eliminar la fila de la tabla con animación
-                        button.closest('tr').fadeOut(300, function () {
-                            $(this).remove();
-
-                            // Si no quedan filas en la tabla, recargar para mostrar el mensaje de carrito vacío
-                            if ($('.quantity-input').length === 0) {
-                                window.location.reload();
-                            } else {
-                                // Actualizar el total y el contador
-                                $('#total-compra').text(response.newTotalText);
-                                $('#cart-count').text(response.newCount);
-                            }
-                        });
-
-                    } else {
-                        alert('Error al eliminar el producto: ' + response.message);
-                    }
-                },
-                error: function () {
-                    alert("Error de conexión al eliminar.");
-                }
-            });
         });
-    });
-
     });
 });

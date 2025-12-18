@@ -15,10 +15,12 @@ function actualizarGlobalCarrito() {
 function verificarSesionGlobal() {
     const usuarioJson = localStorage.getItem('usuarioSesion');
     const menuGestion = document.getElementById('nav-gestion');
+    // BUSCAMOS EL CONTENEDOR (Asegúrate de que este ID exista en tu _Layout.cshtml)
+    const seccion = document.getElementById('nav-sesion-container');
 
-    if (usuarioJson) {
+    if (usuarioJson && seccion) {
         const usuario = JSON.parse(usuarioJson);
-    seccion.innerHTML = `
+        seccion.innerHTML = `
             <div class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     👤 Hola, ${usuario.Nombre}
@@ -28,13 +30,15 @@ function verificarSesionGlobal() {
                 </ul>
             </div>
         `;
-    
-        // Supongamos que RolID 1 es Administrador
+
+        // VALIDACIÓN DEL ROL:
         if (usuario.RolID === 1) {
             menuGestion.style.setProperty("display", "block", "important");
         } else {
             menuGestion.style.display = 'none';
         }
+    }
+}
     }
 }
 
