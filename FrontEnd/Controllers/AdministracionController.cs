@@ -216,7 +216,7 @@ namespace FrontEnd.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["SuccessMessage"] = "Producto registrado exitosamente!";
-                    return RedirectToAction("Productos"); // Corregido de Index a Productos
+                    return RedirectToAction("Productos");
                 }
                 else
                 {
