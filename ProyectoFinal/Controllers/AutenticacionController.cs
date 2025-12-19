@@ -16,20 +16,21 @@ namespace API.Controllers
         private readonly AdministradorRepository _adminRepo = new AdministradorRepository();
         private readonly DBHelper db = new DBHelper();
 
-        // 1. LOGIN DE ADMINISTRADORES (Usando tu repositorio actual)
+        // 1. LOGIN DE ADMINISTRADORES
         [HttpPost]
         [Route("adminlogin")]
         public IHttpActionResult AdminLogin(LoginModel model)
         {
             if (model == null || string.IsNullOrWhiteSpace(model.Email)) return BadRequest();
 
+            // Busca en la tabla Administradores usando PasswordHash
             var admin = _adminRepo.GetAdminByCredentials(model.Email, model.Password);
             if (admin == null || !admin.Activo) return Unauthorized();
 
             return Ok(new { success = true, userId = admin.AdminID, role = admin.Rol, nombre = admin.Nombre });
         }
 
-        // 2. REGISTRO DE USUARIOS (NUEVO)
+        // 2. REGISTRO DE USUARIOS (CORREGIDO)
         [HttpPost]
         [Route("registrar")]
         public IHttpActionResult Registrar([FromBody] Usuario usuario)
@@ -40,10 +41,12 @@ namespace API.Controllers
             {
                 SqlParameter[] parameters = {
                     new SqlParameter("@Email", usuario.Email),
-                    new SqlParameter("@PasswordHash", usuario.PasswordHash),
+                    // Se usa .Password porque así se llama en tu clase Usuario
+                    new SqlParameter("@PasswordHash", usuario.Password),
                     new SqlParameter("@NombreCompleto", usuario.NombreCompleto)
                 };
 
+                // Ejecuta el procedimiento almacenado para insertar en la tabla Usuarios
                 db.ExecuteDataTable("PA_RegistrarUsuario", parameters);
                 return Ok(new { success = true });
             }
@@ -53,7 +56,7 @@ namespace API.Controllers
             }
         }
 
-        // 3. LOGIN DE USUARIOS NORMALES (Usando LoginModel)
+        // 3. LOGIN DE USUARIOS NORMALES
         [HttpPost]
         [Route("login")]
         public IHttpActionResult Login(LoginModel model)
@@ -67,7 +70,7 @@ namespace API.Controllers
                     new SqlParameter("@Password", model.Password)
                 };
 
-                // PA que debe validar contra la tabla dbo.Usuarios
+                // Valida contra la tabla dbo.Usuarios
                 DataTable dt = db.ExecuteDataTable("PA_ValidarUsuario", parameters);
 
                 if (dt.Rows.Count > 0)

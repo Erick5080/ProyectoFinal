@@ -1,44 +1,44 @@
-﻿@{
+﻿@model FrontEnd.Models.Usuario
+
+@{
     ViewBag.Title = "Registro de Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4>Crear Nueva Cuenta</h4>
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0">Crear Nueva Cuenta</h4>
                 </div>
-                <div class="card-body">
-                    <form id="registroForm">
-                        <div class="form-group mb-3">
-                            <label>Nombre Completo</label>
-                            <input type="text" id="NombreCompleto" class="form-control" placeholder="Ej. Juan Pérez" required>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm("ProcesarRegistro", "Login", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre Completo</label>
+                            @Html.TextBoxFor(m => m.NombreCompleto, new { @class = "form-control", required = "required" })
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label>Correo Electrónico</label>
-                            <input type="email" id="Email" class="form-control" placeholder="correo@ejemplo.com" required>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Correo Electrónico</label>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", required = "required" })
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label>Contraseña</label>
-                            <input type="password" id="PasswordHash" class="form-control" placeholder="Mínimo 6 caracteres" required>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Contraseña</label>
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", required = "required" })
                         </div>
 
-                        <div class="d-grid gap-2">
+                        <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-success">Registrarse</button>
-                            <a href="@Url.Action("Index", "Login")" class="btn btn-link">¿Ya tienes cuenta? Inicia sesión</a>
+                            <a href="@Url.Action("Index", "Login")" class="btn btn-link">Volver al Login</a>
                         </div>
-                    </form>
-
-                    <div id="mensajeError" class="alert alert-danger mt-3" style="display:none;"></div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-@section scripts {
-    <script src="~/Scripts/registro.js"></script>
-}

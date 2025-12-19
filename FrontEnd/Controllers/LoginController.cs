@@ -18,66 +18,125 @@ namespace FrontEnd.Controllers
         private readonly string API_BASE_URL = ConfigurationManager.AppSettings["ApiBaseUrl"];
         private readonly HttpClient _httpClient = new HttpClient();
 
-        // GET: /Login/Index (Muestra el formulario de login)
+        // GET: /Login/Index
         public ActionResult Index()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                // Si ya está autenticado, redirigir al panel
-                return RedirectToAction("Dashboard", "Admin");
-            }
+            if (Session["AdminID"] != null) return RedirectToAction("Index", "Administracion");
+            if (Session["UsuarioID"] != null) return RedirectToAction("Index", "Usuario");
+
             return View(new LoginModel());
         }
 
-        // POST: /Login/Index (Procesa el formulario)
+        // GET: /Login/Registro
+        public ActionResult Registro()
+        {
+            // Retorna la vista vinculada a la clase Usuario (Email, Password, NombreCompleto)
+            return View(new Usuario());
+        }
+
+        // POST: /Login/ProcesarLogin
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Index(LoginModel model, string returnUrl)
+        public async Task<ActionResult> ProcesarLogin(LoginModel model, string UserType)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View("Index", model);
 
-            // 1. Enviar credenciales a la API para validación
+            // Determina endpoint: admin usa tabla con PasswordHash, cliente usa tabla Usuarios
+            string endpoint = (UserType == "admin") ? "autenticacion/adminlogin" : "autenticacion/login";
+
             var jsonContent = new StringContent(
                 JsonConvert.SerializeObject(model),
                 Encoding.UTF8,
                 "application/json"
             );
 
-            // Llama al endpoint de la API que creamos
-            var response = await _httpClient.PostAsync(API_BASE_URL + "autenticacion/adminlogin", jsonContent);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                // 2. Autenticación exitosa: Establecer la cookie de autenticación
-                FormsAuthentication.SetAuthCookie(model.Email, false);
+                var response = await _httpClient.PostAsync(API_BASE_URL + endpoint, jsonContent);
 
-                // 3. Redirigir al panel o a la URL solicitada
-                if (Url.IsLocalUrl(returnUrl))
+                if (response.IsSuccessStatusCode)
                 {
-                    return Redirect(returnUrl);
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    var data = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                    FormsAuthentication.SetAuthCookie(model.Email, false);
+
+                    if (UserType == "admin")
+                    {
+                        Session["AdminID"] = (int)data.userId;
+                        Session["AdminNombre"] = (string)data.nombre;
+                        Session["AdminRol"] = (string)data.role;
+                        return RedirectToAction("Index", "Administracion");
+                    }
+                    else
+                    {
+                        Session["UsuarioID"] = (int)data.usuarioId;
+                        Session["UsuarioNombre"] = (string)data.nombre;
+                        return RedirectToAction("Index", "Usuario");
+                    }
                 }
-                else
-                {
-                    return RedirectToAction("Dashboard", "Admin"); // Redirigir al futuro panel de administración
-                }
+
+                ModelState.AddModelError("", "Credenciales inválidas o perfil incorrecto.");
+                return View("Index", model);
             }
-            else
+            catch (Exception ex)
             {
-                // 4. Autenticación fallida
-                ModelState.AddModelError("", "Credenciales de administrador inválidas o API inaccesible.");
-                return View(model);
+                ModelState.AddModelError("", "Error de conexión: " + ex.Message);
+                return View("Index", model);
             }
         }
 
-        // POST: /Login/Logout
-        [Authorize] // Solo se puede ejecutar si el usuario está logueado
+        // POST: /Login/ProcesarRegistro
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ProcesarRegistro(Usuario model)
+        {
+            if (!ModelState.IsValid) return View("Registro", model);
+
+            var jsonContent = new StringContent(
+                JsonConvert.SerializeObject(model),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            try
+            {
+                // Envía el objeto Usuario (NombreCompleto, Email, Password) a la API
+                var response = await _httpClient.PostAsync(API_BASE_URL + "autenticacion/registrar", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["MensajeExito"] = "¡Registro exitoso! Ya puedes iniciar sesión.";
+                    return RedirectToAction("Index");
+                }
+
+                ModelState.AddModelError("", "No se pudo registrar. El correo podría ya estar en uso.");
+                return View("Registro", model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error al conectar con la API: " + ex.Message);
+                return View("Registro", model);
+            }
+        }
+
+        // GET: /Login/Logout
         public ActionResult Logout()
         {
+            Session.Clear();
+            Session.Abandon();
             FormsAuthentication.SignOut();
-            return RedirectToAction("Index", "Home");
+
+            if (Request.Cookies[FormsAuthentication.FormsCookieName] != null)
+            {
+                var myCookie = new HttpCookie(FormsAuthentication.FormsCookieName)
+                {
+                    Expires = DateTime.Now.AddDays(-1d)
+                };
+                Response.Cookies.Add(myCookie);
+            }
+
+            return RedirectToAction("Index", "Login");
         }
     }
 }
