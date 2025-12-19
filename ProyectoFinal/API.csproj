@@ -192,6 +192,7 @@
     <Compile Include="Models\Orden.cs" />
     <Compile Include="Models\Producto.cs" />
     <Compile Include="Models\Proveedor.cs" />
+    <Compile Include="Models\Usuario.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\AdministradorRepository.cs" />
     <Compile Include="Repositories\ProductoRepository.cs" />

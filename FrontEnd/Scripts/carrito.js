@@ -20,7 +20,7 @@ $(document).ready(function () {
             url: URL_BASE + '/Carrito/Agregar',
             type: 'POST',
             data: {
-                productoId: productId,
+                productoID: productId,
                 cantidad: quantity
             },
             success: function (response) {

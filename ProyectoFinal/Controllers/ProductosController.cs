@@ -10,7 +10,6 @@ using System.Web.Http;
 
 namespace API.Controllers
 {
-    // Modelo simple para la solicitud de compra
     public class CompraRequest
     {
         public int ProductoID { get; set; }
@@ -22,7 +21,7 @@ namespace API.Controllers
     {
         private readonly DBHelper db = new DBHelper();
 
-        // Mapeo (Helper Function)
+        // Función de Mapeo: Convierte las filas de la BD al modelo Producto
         private List<Producto> MapDataTableToProductos(DataTable dt)
         {
             List<Producto> productos = new List<Producto>();
@@ -35,7 +34,6 @@ namespace API.Controllers
                     Descripcion = row["Descripcion"] != DBNull.Value ? row["Descripcion"].ToString() : "",
                     PrecioUnitario = Convert.ToDecimal(row["PrecioUnitario"]),
                     Stock = Convert.ToInt32(row["Stock"]),
-                    // Usamos verificaciones para columnas opcionales o que podrían faltar
                     FechaRegistro = dt.Columns.Contains("FechaRegistro") && row["FechaRegistro"] != DBNull.Value
                                     ? Convert.ToDateTime(row["FechaRegistro"]) : DateTime.Now,
                     ImagenURL = row["ImagenURL"] != DBNull.Value ? row["ImagenURL"].ToString() : "",
@@ -46,15 +44,64 @@ namespace API.Controllers
             return productos;
         }
 
-        // 1. CREAR PRODUCTO (ADMIN)
+        // 1. OBTENER UN PRODUCTO POR ID (Utilizado por el Carrito)
+        [HttpGet]
+        [Route("obtener/{id:int}")]
+        public IHttpActionResult ObtenerProductoPorId(int id)
+        {
+            try
+            {
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@ProductoID", id)
+                };
+
+                // Cambio Crítico: Usamos el procedimiento para buscar por ID específico
+                // Asegúrate de tener el PA_ObtenerProductoPorID en tu BD
+                DataTable dt = db.ExecuteDataTable("PA_ObtenerProductoPorID", parameters);
+                List<Producto> productos = MapDataTableToProductos(dt);
+
+                if (productos.Count == 0)
+                {
+                    return NotFound(); // Error 404
+                }
+
+                // Retornamos el objeto individual para que el FrontEnd lo procese correctamente
+                return Ok(productos.FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+                // Retorna el error detallado para facilitar la depuración
+                return InternalServerError(new Exception("Error al consultar la BD: " + ex.Message));
+            }
+        }
+
+        // 2. OBTENER TODOS LOS PRODUCTOS EN STOCK
+        [HttpGet]
+        [Route("obtener")]
+        public IHttpActionResult ObtenerTodosLosProductos()
+        {
+            try
+            {
+                DataTable dt = db.ExecuteDataTable("PA_ObtenerProductosEnStock");
+                List<Producto> productos = MapDataTableToProductos(dt);
+
+                if (productos.Count == 0) return NotFound();
+
+                return Ok(productos);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        // 3. REGISTRAR PRODUCTO (ADMIN)
         [HttpPost]
         [Route("registrar")]
         public IHttpActionResult RegistrarProducto([FromBody] Producto producto)
         {
-            if (producto == null || !ModelState.IsValid)
-            {
-                return BadRequest("Datos de producto inválidos.");
-            }
+            if (producto == null || !ModelState.IsValid) return BadRequest("Datos inválidos.");
 
             try
             {
@@ -67,25 +114,13 @@ namespace API.Controllers
                     new SqlParameter("@ImagenURL", producto.ImagenURL)
                 };
 
-                // Asumo que PA_InsertarProducto devuelve un DataTable con el ProductoID
                 DataTable result = db.ExecuteDataTable("PA_InsertarProducto", parameters);
-
                 if (result.Rows.Count > 0)
                 {
-                    int newId = Convert.ToInt32(result.Rows[0]["ProductoID"]);
-
-                    if (newId > 0)
-                    {
-                        producto.ProductoID = newId;
-                        return Content(HttpStatusCode.Created, producto); // 201 Created
-                    }
-                    else if (newId == -1)
-                    {
-                        return Conflict(); // 409 Conflict (si hay lógica de negocio que previene el registro)
-                    }
+                    producto.ProductoID = Convert.ToInt32(result.Rows[0]["ProductoID"]);
+                    return Content(HttpStatusCode.Created, producto);
                 }
-
-                return InternalServerError(new Exception("Fallo al obtener el ID del producto."));
+                return InternalServerError(new Exception("No se pudo obtener el nuevo ID."));
             }
             catch (Exception ex)
             {
@@ -93,68 +128,12 @@ namespace API.Controllers
             }
         }
 
-        // 2. LEER PRODUCTOS (LECTURA)
-
-        [HttpGet]
-        [Route("obtener")]
-        public IHttpActionResult ObtenerTodosLosProductos()
-        {
-            try
-            {
-                DataTable dt = db.ExecuteDataTable("PA_ObtenerProductosEnStock");
-                List<Producto> productos = MapDataTableToProductos(dt);
-
-                if (productos.Count == 0)
-                {
-                    return NotFound();
-                }
-
-                return Ok(productos);
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError(ex);
-            }
-        }
-
-        [HttpGet]
-        [Route("obtener/{id:int}")]
-        public IHttpActionResult ObtenerProductoPorId(int id)
-        {
-            try
-            {
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@ProductoID", id)
-                };
-
-                // Asumo que PA_ObtenerProductosEnStock con parámetros devuelve solo 1 producto
-                DataTable dt = db.ExecuteDataTable("PA_ObtenerProductosEnStock", parameters);
-                List<Producto> productos = MapDataTableToProductos(dt);
-
-                if (productos.Count == 0)
-                {
-                    return NotFound();
-                }
-
-                return Ok(productos.FirstOrDefault());
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError(ex);
-            }
-        }
-
-        // 3. ACTUALIZAR PRODUCTO (ADMIN)
-
+        // 4. ACTUALIZAR PRODUCTO
         [HttpPut]
         [Route("actualizar/{id:int}")]
         public IHttpActionResult ActualizarProducto(int id, [FromBody] Producto producto)
         {
-            if (id != producto.ProductoID || !ModelState.IsValid)
-            {
-                return BadRequest("Datos de producto o ID de ruta inválidos.");
-            }
+            if (id != producto.ProductoID || !ModelState.IsValid) return BadRequest("IDs no coinciden.");
 
             try
             {
@@ -169,15 +148,8 @@ namespace API.Controllers
                     new SqlParameter("@Activo", producto.Activo)
                 };
 
-                // Asumo que PA_ActualizarProducto devuelve un número de filas afectadas
                 DataTable result = db.ExecuteDataTable("PA_ActualizarProducto", parameters);
-
-                if (Convert.ToInt32(result.Rows[0]["RowsAffected"]) > 0)
-                {
-                    return Ok(producto); // 200 OK
-                }
-
-                return NotFound(); // 404 si el ID no existe
+                return Ok(producto);
             }
             catch (Exception ex)
             {
@@ -185,28 +157,16 @@ namespace API.Controllers
             }
         }
 
-        // 4. ELIMINAR/DESACTIVAR PRODUCTO (ADMIN)
-
+        // 5. ELIMINAR PRODUCTO
         [HttpDelete]
         [Route("eliminar/{id:int}")]
         public IHttpActionResult EliminarProducto(int id)
         {
             try
             {
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@ProductoID", id)
-                };
-
-                // Asumo que PA_DesactivarProducto devuelve un número de filas afectadas
-                DataTable result = db.ExecuteDataTable("PA_DesactivarProducto", parameters);
-
-                if (Convert.ToInt32(result.Rows[0]["RowsAffected"]) > 0)
-                {
-                    return Ok(new { Mensaje = $"Producto con ID {id} desactivado correctamente." }); // 200 OK
-                }
-
-                return NotFound(); // 404 si el ID no existe
+                SqlParameter[] parameters = new SqlParameter[] { new SqlParameter("@ProductoID", id) };
+                db.ExecuteDataTable("PA_DesactivarProducto", parameters);
+                return Ok(new { Mensaje = "Producto desactivado." });
             }
             catch (Exception ex)
             {
@@ -214,16 +174,12 @@ namespace API.Controllers
             }
         }
 
-        // 5. DISMINUIR STOCK (CLIENTE/VENTA)
-
+        // 6. DISMINUIR STOCK
         [HttpPost]
         [Route("disminuirstock")]
         public IHttpActionResult DisminuirStock([FromBody] CompraRequest request)
         {
-            if (request == null || request.CantidadComprada <= 0)
-            {
-                return BadRequest("Cantidad de compra inválida.");
-            }
+            if (request == null || request.CantidadComprada <= 0) return BadRequest("Cantidad inválida.");
 
             try
             {
@@ -233,18 +189,11 @@ namespace API.Controllers
                     new SqlParameter("@CantidadComprada", request.CantidadComprada)
                 };
 
-                // Asumo que PA_DisminuirStock devuelve un resultado
                 DataTable result = db.ExecuteDataTable("PA_DisminuirStock", parameters);
-
                 if (Convert.ToInt32(result.Rows[0]["Resultado"]) == 1)
-                {
-                    return Ok(new { Mensaje = "Stock actualizado correctamente tras la compra." });
-                }
-                else
-                {
-                    // Manejar lógica de stock insuficiente
-                    return BadRequest("Error: Stock insuficiente para procesar la compra.");
-                }
+                    return Ok(new { Mensaje = "Stock actualizado." });
+
+                return BadRequest("Stock insuficiente.");
             }
             catch (Exception ex)
             {
