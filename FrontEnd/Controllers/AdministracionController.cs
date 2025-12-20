@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
-using System.Net;
 using System.Text;
 
 namespace FrontEnd.Controllers
@@ -26,8 +25,7 @@ namespace FrontEnd.Controllers
         {
             if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
             ViewBag.UserName = Session["AdminNombre"];
-            ViewBag.Message = "Panel de Administración Central";
-            return View();
+            return View("Dashboard");
         }
 
         // ==========================================
@@ -43,8 +41,7 @@ namespace FrontEnd.Controllers
                 var response = await _httpClient.GetAsync(API_BASE_URL + "proveedores/obtener");
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    proveedores = JsonConvert.DeserializeObject<List<ProveedorViewModel>>(content);
+                    proveedores = JsonConvert.DeserializeObject<List<ProveedorViewModel>>(await response.Content.ReadAsStringAsync());
                 }
             }
             catch { }
@@ -52,12 +49,17 @@ namespace FrontEnd.Controllers
         }
 
         [HttpGet]
-        public ActionResult CrearProveedor() => View(new ProveedorViewModel { Activo = true });
+        public ActionResult CrearProveedor()
+        {
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
+            return View(new ProveedorViewModel { Activo = true });
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CrearProveedor(ProveedorViewModel model)
         {
+            if (!ModelState.IsValid) return View(model);
             var json = JsonConvert.SerializeObject(model);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             await _httpClient.PostAsync(API_BASE_URL + "proveedores/registrar", content);
@@ -67,6 +69,7 @@ namespace FrontEnd.Controllers
         [HttpGet]
         public async Task<ActionResult> EditarProveedor(int id)
         {
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
             var response = await _httpClient.GetAsync(API_BASE_URL + $"proveedores/obtener/{id}");
             var prov = JsonConvert.DeserializeObject<ProveedorViewModel>(await response.Content.ReadAsStringAsync());
             return View(prov);
@@ -101,6 +104,7 @@ namespace FrontEnd.Controllers
         [HttpGet]
         public async Task<ActionResult> RegistrarProducto()
         {
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
             await CargarProveedoresEnViewBag();
             return View(new Producto { Activo = true });
         }
@@ -109,15 +113,21 @@ namespace FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> RegistrarProducto(Producto model)
         {
-            var json = JsonConvert.SerializeObject(model);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            await _httpClient.PostAsync(API_BASE_URL + "productos/registrar", content);
-            return RedirectToAction("Productos");
+            if (ModelState.IsValid)
+            {
+                var json = JsonConvert.SerializeObject(model);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                await _httpClient.PostAsync(API_BASE_URL + "productos/registrar", content);
+                return RedirectToAction("Productos");
+            }
+            await CargarProveedoresEnViewBag();
+            return View(model);
         }
 
         [HttpGet]
         public async Task<ActionResult> EditarProducto(int id)
         {
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
             await CargarProveedoresEnViewBag();
             var response = await _httpClient.GetAsync(API_BASE_URL + $"productos/obtener/{id}");
             var product = JsonConvert.DeserializeObject<Producto>(await response.Content.ReadAsStringAsync());
@@ -128,10 +138,15 @@ namespace FrontEnd.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> EditarProducto(Producto model)
         {
-            var json = JsonConvert.SerializeObject(model);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            await _httpClient.PutAsync(API_BASE_URL + $"productos/actualizar/{model.ProductoID}", content);
-            return RedirectToAction("Productos");
+            if (ModelState.IsValid)
+            {
+                var json = JsonConvert.SerializeObject(model);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                await _httpClient.PutAsync(API_BASE_URL + $"productos/actualizar/{model.ProductoID}", content);
+                return RedirectToAction("Productos");
+            }
+            await CargarProveedoresEnViewBag();
+            return View(model);
         }
 
         [HttpPost]
@@ -142,15 +157,14 @@ namespace FrontEnd.Controllers
         }
 
         // ==========================================
-        // 4. GESTIÓN DE ÓRDENES Y DETALLES
+        // 4. GESTIÓN DE ÓRDENES
         // ==========================================
         [HttpGet]
         public async Task<ActionResult> VerOrdenes()
         {
             if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
             var response = await _httpClient.GetAsync(API_BASE_URL + "ordenes/obtener");
-            var content = await response.Content.ReadAsStringAsync();
-            var ordenes = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(content);
+            var ordenes = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(await response.Content.ReadAsStringAsync());
             return View(ordenes);
         }
 
@@ -165,33 +179,27 @@ namespace FrontEnd.Controllers
                 Detalles = new List<DetalleOrden>()
             };
 
-            try
-            {
-                // Petición 1: Datos generales de la orden
-                var respOrden = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/obtener/{id}");
-                if (respOrden.IsSuccessStatusCode)
-                {
-                    viewModel.Orden = JsonConvert.DeserializeObject<Dictionary<string, object>>(await respOrden.Content.ReadAsStringAsync());
-                }
+            var respOrden = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/obtener/{id}");
+            if (respOrden.IsSuccessStatusCode)
+                viewModel.Orden = JsonConvert.DeserializeObject<Dictionary<string, object>>(await respOrden.Content.ReadAsStringAsync());
 
-                // Petición 2: Desglose de productos de la orden
-                var respDetalles = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/detalles/{id}");
-                if (respDetalles.IsSuccessStatusCode)
-                {
-                    viewModel.Detalles = JsonConvert.DeserializeObject<List<DetalleOrden>>(await respDetalles.Content.ReadAsStringAsync());
-                }
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", "Error al conectar con el servicio de órdenes: " + ex.Message);
-            }
+            var respDetalles = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/detalles/{id}");
+            if (respDetalles.IsSuccessStatusCode)
+                viewModel.Detalles = JsonConvert.DeserializeObject<List<DetalleOrden>>(await respDetalles.Content.ReadAsStringAsync());
 
             return View(viewModel);
         }
 
         // ==========================================
-        // AUXILIARES
+        // 5. SESIÓN Y AUXILIARES
         // ==========================================
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            Session.Abandon();
+            return RedirectToAction("Index", "Home");
+        }
+
         private async Task CargarProveedoresEnViewBag()
         {
             var resp = await _httpClient.GetAsync(API_BASE_URL + "proveedores/obtener");
@@ -200,12 +208,6 @@ namespace FrontEnd.Controllers
                 var lista = JsonConvert.DeserializeObject<List<ProveedorViewModel>>(await resp.Content.ReadAsStringAsync());
                 ViewBag.Proveedores = new SelectList(lista, "ProveedorID", "Nombre");
             }
-        }
-
-        public ActionResult Logout()
-        {
-            Session.Clear();
-            return RedirectToAction("Index", "Login");
         }
     }
 }

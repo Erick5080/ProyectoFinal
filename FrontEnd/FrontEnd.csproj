@@ -206,8 +206,6 @@
     <Content Include="Views\Administracion\Productos.cshtml" />
     <Content Include="Views\Administracion\EditarProducto.cshtml" />
     <Content Include="Views\Administracion\VerOrdenes.cshtml" />
-    <Content Include="Views\Proveedores\Index.cshtml" />
-    <Content Include="Views\Proveedores\Editar.cshtml" />
     <Content Include="Views\Administracion\VerDetalles.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Carrito\Finalizar.cshtml" />

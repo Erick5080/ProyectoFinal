@@ -3,14 +3,23 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title - ElectroTech</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
         <div class="container">
-            @Html.ActionLink("ElectroTech DS4", "Index", "Home", new { area = "" }, new { @class = "navbar-brand fw-bold" })
+            @* EL LOGO REGRESA AL DASHBOARD SI ES ADMIN, SI NO AL HOME *@
+            @if (Session["AdminID"] != null)
+            {
+                <a href="@Url.Action("Index", "Administracion")" class="navbar-brand fw-bold">ElectroTech DS4</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Index", "Home")" class="navbar-brand fw-bold">ElectroTech DS4</a>
+            }
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
                 <span class="navbar-toggler-icon"></span>
@@ -20,24 +29,55 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">@Html.ActionLink("Inicio", "Index", "Home", null, new { @class = "nav-link" })</li>
 
-                    <li class="nav-item dropdown" id="nav-gestion" style="display: none;">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">⚙️ Gestión</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="@Url.Action("Productos", "Administracion")">Productos</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Proveedores", "Administracion")">Proveedores</a></li>
-                        </ul>
-                    </li>
+                    @* MUESTRA LA GESTIÓN SOLO SI EL ADMIN ESTÁ LOGUEADO *@
+                    @if (Session["AdminID"] != null)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-warning fw-bold" href="#" id="navGestion" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cogs"></i> Gestión
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Administracion")"><i class="fas fa-chart-line"></i> Panel Principal</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Productos", "Administracion")"><i class="fas fa-box"></i> Productos</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Proveedores", "Administracion")"><i class="fas fa-truck"></i> Proveedores</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="@Url.Action("VerOrdenes", "Administracion")"><i class="fas fa-file-invoice"></i> Ver Órdenes</a></li>
+                            </ul>
+                        </li>
+                    }
                 </ul>
 
                 <ul class="navbar-nav">
+                    @* CARRITO SIEMPRE VISIBLE O SEGÚN TU PREFERENCIA *@
                     <li class="nav-item">
                         <a class="nav-link btn btn-outline-info me-2" href="@Url.Action("Index", "Carrito")">
                             🛒 <span id="contador-carrito" class="badge bg-danger">0</span>
                         </a>
                     </li>
-                    <li class="nav-item" id="seccion-usuario">
-                        <a class="nav-link btn btn-primary" href="@Url.Action("Index", "Login")">👤 Iniciar Sesión</a>
-                    </li>
+
+                    @* LÓGICA DE LOGIN / LOGOUT *@
+                    @if (Session["AdminID"] == null)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-primary px-3" href="@Url.Action("Index", "Login")">
+                                <i class="fas fa-user"></i> Iniciar Sesión
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link btn btn-outline-light dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-shield"></i> Hola, @Session["AdminNombre"]
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Administracion")"><i class="fas fa-tachometer-alt"></i> Panel de Control</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="@Url.Action("Logout", "Administracion")"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>
@@ -45,31 +85,36 @@
 
     <style>
         body {
-            padding-top: 70px;
+            padding-top: 80px;
             background-color: #f8f9fa;
         }
 
-        .product-card {
-            transition: transform 0.2s;
+        .navbar-brand {
+            font-size: 1.5rem;
+            letter-spacing: 1px;
         }
 
-            .product-card:hover {
-                transform: scale(1.03);
-            }
+        .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+
+        /* Efecto hover suave en dropdowns */
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
     </style>
+
     <div class="container body-content">
         @RenderBody()
         <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+        <footer class="text-center pb-4">
+            <p>&copy; @DateTime.Now.Year - ElectroTech DS4 - Panel Administrativo</p>
         </footer>
     </div>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-    <script src="~/Scripts/main.js"></script>
-    <script src="~/Scripts/catalogo.js"></script>
-    <script src="~/Scripts/carrito.js"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

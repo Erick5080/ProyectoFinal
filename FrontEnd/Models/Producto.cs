@@ -1,13 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Web.Mvc;
 
 namespace FrontEnd.Models
 {
-    // Clase para la obtencion de datos de productos del API
     public class Producto
     {
-
         [Required]
         [Display(Name = "ID de Producto")]
         public int ProductoID { get; set; }
@@ -24,15 +21,19 @@ namespace FrontEnd.Models
         [Required(ErrorMessage = "El precio es obligatorio.")]
         [DataType(DataType.Currency)]
         [Display(Name = "Precio Unitario")]
-        // Usamos decimal para precisión en el dinero.
         public decimal PrecioUnitario { get; set; }
 
         [Required(ErrorMessage = "El stock es obligatorio.")]
         [Range(0, 99999, ErrorMessage = "El stock debe ser un valor positivo.")]
         public int Stock { get; set; }
 
+        // --- NUEVAS PROPIEDADES PARA COINCIDIR CON TU TABLA ---
+        [Display(Name = "Fecha de Registro")]
+        public DateTime FechaRegistro { get; set; }
 
-        // Manejo de Relación
+        [Display(Name = "Ventas Acumuladas")]
+        public int VentasAcumuladas { get; set; }
+        // ----------------------------------------------------
 
         [Required(ErrorMessage = "El ID del proveedor es obligatorio.")]
         [Display(Name = "ID Proveedor")]
@@ -43,7 +44,6 @@ namespace FrontEnd.Models
         [DataType(DataType.ImageUrl)]
         public string ImagenURL { get; set; }
 
-        // Propiedad para la eliminación lógica
         public bool Activo { get; set; }
     }
 }

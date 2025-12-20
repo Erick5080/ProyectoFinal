@@ -58,12 +58,11 @@
                                             <span class="badge bg-success">@item.Stock</span>
                                         }
                                     </td>
-                                    <td>@item.FechaRegistro.ToShortDateString()</td>
+                                    <td>@item.FechaRegistro.ToString("yyyy-MM-dd")</td>
                                     <td>
                                         @(item.Activo ? "Sí" : "No")
                                     </td>
                                     <td>
-                                        @* Botón de Edición (FALTA IMPLEMENTAR VISTA/ACCIÓN) *@
                                         @Html.ActionLink("Editar", "EditarProducto", new { id = item.ProductoID }, new { @class = "btn btn-warning btn-sm me-2" })
 
                                         @* Botón de Eliminación (Lógica de Desactivar) *@
