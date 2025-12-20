@@ -1,76 +1,52 @@
-﻿@model List<Dictionary<string, object>>
+﻿@model FrontEnd.Models.OrdenDetallesViewModel
 
 @{
-    ViewBag.Title = "Órdenes de Compra";
+    ViewBag.Title = "Detalles de la Orden";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
-    <h2 class="mb-4"><i class="fas fa-file-invoice"></i> @ViewBag.Message</h2>
-    <hr />
-
-    @if (ViewBag.InfoMessage != null)
-    {
-        <div class="alert alert-info">
-            @ViewBag.InfoMessage
-        </div>
-    }
-
-    <div class="d-flex justify-content-between mb-3">
-        @Html.ActionLink("Volver al Panel", "Index", "Administracion", null, new { @class = "btn btn-secondary" })
-        <button class="btn btn-success" onclick="window.location.reload()">
-            <i class="fas fa-sync-alt"></i> Actualizar
-        </button>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-search-dollar"></i> Detalle de Orden #@Model.Orden["OrdenID"]</h2>
+        @Html.ActionLink("Volver a Órdenes", "VerOrdenes", null, new { @class = "btn btn-secondary" })
     </div>
 
-    @if (Model != null && Model.Any())
-    {
-        <div class="card shadow-lg">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
+    <div class="row">
+        @* Panel de Información General *@
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">Información de la Orden</div>
+                <div class="card-body">
+                    <p><strong>Fecha:</strong> @Convert.ToDateTime(Model.Orden["FechaOrden"]).ToString("f")</p>
+                    <p><strong>Cliente ID:</strong> @(Model.Orden["ClienteID"] ?? "N/A")</p>
+                    <hr />
+                    <h4 class="text-success text-center">Total: $@Convert.ToDecimal(Model.Orden["Total"]).ToString("N2")</h4>
+                </div>
+            </div>
+        </div>
+
+        @* Tabla de Productos Comprados *@
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Productos Incluidos</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Orden ID</th>
-                                <th>Cliente ID</th>
-                                <th>Fecha de Orden</th>
-                                <th>Total</th>
-                                <th>Acciones</th>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio Unit.</th>
+                                <th class="text-end">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var orden in Model)
+                            @foreach (var detalle in Model.Detalles)
                             {
                                 <tr>
-                                    <td>@orden["OrdenID"]</td>
-                                    <td>
-                                        @if (orden.ContainsKey("ClienteID") && orden["ClienteID"] != null && orden["ClienteID"] is int clienteId)
-                                        {
-                                            <span>@clienteId</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Invitado</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (orden.ContainsKey("FechaOrden") && orden["FechaOrden"] != null)
-                                        {
-                                            // Asumiendo que es DateTime o string que se puede parsear
-                                            <span>@Convert.ToDateTime(orden["FechaOrden"]).ToString("yyyy-MM-dd HH:mm")</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (orden.ContainsKey("Total") && orden["Total"] != null)
-                                        {
-                                            <span>$@Convert.ToDecimal(orden["Total"]).ToString("N2")</span>
-                                        }
-                                    </td>
-                                    <td><button class="btn btn-info btn-sm"
-                                            onclick="location.href='@Url.Action("VerDetalles", "Administracion", new { id = orden["OrdenID"] })'">
-                                        <i class="fas fa-search"></i> Ver Detalles
-                                        </button>
-                                    </td>
+                                    <td>@detalle.NombreProducto</td>
+                                    <td class="text-center">@detalle.Cantidad</td>
+                                    <td class="text-end">$@detalle.PrecioUnitario.ToString("N2")</td>
+                                    <td class="text-end fw-bold">$@((detalle.Cantidad * detalle.PrecioUnitario).ToString("N2"))</td>
                                 </tr>
                             }
                         </tbody>
@@ -78,19 +54,5 @@
                 </div>
             </div>
         </div>
-    }
-    @if (Model == null || !Model.Any())
-    {
-        <div class="alert alert-warning text-center">
-            @* Accedemos al ModelState a través de ViewData para evitar el error de compilación *@
-            @if (ViewData.ModelState.IsValid)
-            {
-                <p>No se encontraron órdenes. ¡Es hora de que los clientes empiecen a comprar!</p>
-            }
-            else
-            {
-                @Html.ValidationSummary(false, "", new { @class = "text-danger" })
-            }
-        </div>
-    }
+    </div>
 </div>

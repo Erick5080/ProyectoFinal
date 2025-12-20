@@ -7,13 +7,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using FrontEnd.Models;
+using System.Configuration;
 
 namespace FrontEnd.Controllers
 {
     public class HomeController : Controller
     {
-        // 🚨 IMPORTANTE: Reemplaza XXXXX con el puerto de tu proyecto API (el Backend).
-        private const string API_BASE_URL = "https://localhost:XXXXX/api/";
+        private const string API_BASE_URL = ConfigurationManager.AppSettings["ApiBaseUrl"];
         private readonly HttpClient _httpClient = new HttpClient();
 
         //Página principal

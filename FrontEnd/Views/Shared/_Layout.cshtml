@@ -11,10 +11,10 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
         <div class="container">
-            @* EL LOGO REGRESA AL DASHBOARD SI ES ADMIN, SI NO AL HOME *@
+            @* LOGO DINÁMICO: Admin va al Dashboard, Usuario al Home *@
             @if (Session["AdminID"] != null)
             {
-                <a href="@Url.Action("Index", "Administracion")" class="navbar-brand fw-bold">ElectroTech DS4</a>
+                <a href="@Url.Action("Index", "Administracion")" class="navbar-brand fw-bold text-info">ElectroTech Admin</a>
             }
             else
             {
@@ -29,16 +29,14 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">@Html.ActionLink("Inicio", "Index", "Home", null, new { @class = "nav-link" })</li>
 
-                    @* MUESTRA LA GESTIÓN SOLO SI EL ADMIN ESTÁ LOGUEADO *@
+                    @* MENÚ DE GESTIÓN (SOLO ADMIN) *@
                     @if (Session["AdminID"] != null)
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-warning fw-bold" href="#" id="navGestion" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-cogs"></i> Gestión
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="@Url.Action("Index", "Administracion")"><i class="fas fa-chart-line"></i> Panel Principal</a></li>
-                                <li><hr class="dropdown-divider"></li>
+                            <ul class="dropdown-menu shadow">
                                 <li><a class="dropdown-item" href="@Url.Action("Productos", "Administracion")"><i class="fas fa-box"></i> Productos</a></li>
                                 <li><a class="dropdown-item" href="@Url.Action("Proveedores", "Administracion")"><i class="fas fa-truck"></i> Proveedores</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -49,16 +47,17 @@
                 </ul>
 
                 <ul class="navbar-nav">
-                    @* CARRITO SIEMPRE VISIBLE O SEGÚN TU PREFERENCIA *@
+                    @* CARRITO *@
                     <li class="nav-item">
                         <a class="nav-link btn btn-outline-info me-2" href="@Url.Action("Index", "Carrito")">
                             🛒 <span id="contador-carrito" class="badge bg-danger">0</span>
                         </a>
                     </li>
 
-                    @* LÓGICA DE LOGIN / LOGOUT *@
-                    @if (Session["AdminID"] == null)
+                    @* LÓGICA DE LOGIN / LOGOUT UNIFICADA *@
+                    @if (Session["AdminID"] == null && Session["UsuarioID"] == null)
                     {
+                        @* NADIE LOGUEADO *@
                         <li class="nav-item">
                             <a class="nav-link btn btn-primary px-3" href="@Url.Action("Index", "Login")">
                                 <i class="fas fa-user"></i> Iniciar Sesión
@@ -67,14 +66,27 @@
                     }
                     else
                     {
+                        @* ALGUIEN LOGUEADO (ADMIN O USUARIO) *@
                         <li class="nav-item dropdown">
                             <a class="nav-link btn btn-outline-light dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-shield"></i> Hola, @Session["AdminNombre"]
+                                <i class="fas fa-user-circle"></i>
+                                Hola, @(Session["AdminNombre"] ?? Session["UsuarioNombre"] ?? "Usuario")
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li><a class="dropdown-item" href="@Url.Action("Index", "Administracion")"><i class="fas fa-tachometer-alt"></i> Panel de Control</a></li>
+                                @if (Session["AdminID"] != null)
+                                {
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Administracion")">Panel de Control</a></li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" href="@Url.Action("MisOrdenes", "Home")">Mis Pedidos</a></li>
+                                }
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="@Url.Action("Logout", "Administracion")"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                                <li>
+                                    <a class="dropdown-item text-danger fw-bold" href="@Url.Action("Logout", "Administracion")">
+                                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     }
@@ -90,8 +102,8 @@
         }
 
         .navbar-brand {
-            font-size: 1.5rem;
-            letter-spacing: 1px;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
         }
 
         .dropdown-menu-end {
@@ -99,19 +111,19 @@
             left: auto;
         }
 
-        /* Efecto hover suave en dropdowns */
-        .dropdown-item:hover {
-            background-color: #f1f1f1;
+        .dropdown-item {
+            padding: 10px 20px;
         }
     </style>
 
-    <div class="container body-content">
+    <div class="container body-content" style="min-height: 80vh;">
         @RenderBody()
-        <hr />
-        <footer class="text-center pb-4">
-            <p>&copy; @DateTime.Now.Year - ElectroTech DS4 - Panel Administrativo</p>
-        </footer>
     </div>
+
+    <hr />
+    <footer class="text-center pb-4">
+        <p>&copy; @DateTime.Now.Year - ElectroTech DS4 - Todos los derechos reservados</p>
+    </footer>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
