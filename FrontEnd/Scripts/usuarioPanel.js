@@ -5,67 +5,54 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarOrdenes();
 });
 
-/**
- * Obtiene las órdenes del cliente desde el controlador de C# 
- * y las renderiza en la tabla dinámica.
- */
+
 async function cargarOrdenes() {
-    const tbody = document.getElementById('tablaOrdenes');
-    const url = tbody.getAttribute('data-url'); // Obtenemos la URL desde un data-attribute
+    // 1. Obtener el ID del usuario desde el campo oculto de la vista
+    const usuarioId = document.getElementById('sessionUserId').value;
+    const tabla = document.getElementById('tablaOrdenes');
 
-    try {
-        const response = await fetch(url);
-
-        if (!response.ok) throw new Error("Error en la petición");
-
-        const data = await response.json();
-
-        // Si no hay datos o hay un error devuelto por el servidor
-        if (!data || data.length === 0 || data.error) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center py-4 text-muted">
-                        <i class="fas fa-info-circle"></i> No tienes pedidos registrados aún.
-                    </td>
-                </tr>`;
-            return;
-        }
-
-        tbody.innerHTML = ''; // Limpiar el spinner de carga
-
-        data.forEach(orden => {
-            const fecha = new Date(orden.FechaOrden).toLocaleDateString();
-            const total = typeof orden.Total === 'number' ? orden.Total.toFixed(2) : "0.00";
-
-            tbody.innerHTML += `
-                <tr>
-                    <td class="fw-bold text-primary">#${orden.OrdenID}</td>
-                    <td>${fecha}</td>
-                    <td class="fw-bold text-dark">$${total}</td>
-                    <td>
-                        <span class="badge ${getBadgeColor(orden.Estado)}">
-                            ${orden.Estado}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-light border" onclick="verDetalle(${orden.OrdenID})">
-                            <i class="fas fa-eye text-primary"></i> Detalle
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-    } catch (error) {
-        console.error("Error al cargar órdenes:", error);
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-danger py-4">
-                    <i class="fas fa-exclamation-triangle"></i> No se pudo cargar el historial. Intente más tarde.
-                </td>
-            </tr>`;
+    if (!usuarioId || usuarioId === "") {
+        tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error: No se detectó sesión de usuario.</td></tr>';
+        return;
     }
+
+    // 2. Llamada a la API (Asegúrate de que el puerto coincida con tu API)
+    // Se usa el endpoint que filtra por usuarioId
+    fetch(`https://localhost:44389/api/autenticacion/ordenes/${usuarioId}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Error en la respuesta de la API");
+            return response.json();
+        })
+        .then(data => {
+            let html = '';
+
+            if (data && data.length > 0) {
+                data.forEach(orden => {
+                    html += `
+                        <tr>
+                            <td><strong>#${orden.OrdenID}</strong></td>
+                            <td>${new Date(orden.Fecha).toLocaleDateString()}</td>
+                            <td>$${orden.Total.toFixed(2)}</td>
+                            <td><span class="badge bg-success">${orden.Estado}</span></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary">Ver Detalle</button>
+                            </td>
+                        </tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="5" class="text-center py-4 text-muted">No tienes pedidos registrados aún.</td></tr>';
+            }
+
+            tabla.innerHTML = html;
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            tabla.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">No se pudieron cargar las órdenes. Inténtalo más tarde.</td></tr>';
+        });
 }
 
+// Cargar automáticamente al entrar a la página
+document.addEventListener('DOMContentLoaded', cargarOrdenes);
 /**
  * Define el color del badge según el estado de la orden
  */

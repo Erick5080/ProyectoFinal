@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using System.Text;
 using System.Configuration;
 using FrontEnd.Models;
 using System.Net.Http;
@@ -10,409 +9,203 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text;
 
 namespace FrontEnd.Controllers
 {
-    // Aseguramos que solo el administrador pueda acceder a estas rutas
-    [Authorize(Roles = "Admin")]
     public class AdministracionController : Controller
     {
         private readonly string API_BASE_URL = ConfigurationManager.AppSettings["ApiBaseUrl"];
         private readonly HttpClient _httpClient = new HttpClient();
 
-        // GET: /Administracion/Dashboard
+        // ==========================================
+        // 1. DASHBOARD
+        // ==========================================
         [HttpGet]
-        public ActionResult Dashboard()
+        public ActionResult Index()
         {
-            ViewBag.Message = "Bienvenido al Panel de Administración.";
-            ViewBag.UserName = User.Identity.Name;
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
+            ViewBag.UserName = Session["AdminNombre"];
+            ViewBag.Message = "Panel de Administración Central";
             return View();
         }
 
-        // GESTIÓN DE PROVEEDORES
-
-        // GET: /Administracion/Proveedores (Listado)
+        // ==========================================
+        // 2. GESTIÓN DE PROVEEDORES
+        // ==========================================
         [HttpGet]
         public async Task<ActionResult> Proveedores()
         {
-            ViewBag.Title = "Gestión de Proveedores";
-
-            var response = await _httpClient.GetAsync(API_BASE_URL + "proveedores/obtener");
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var proveedores = JsonConvert.DeserializeObject<List<ProveedorViewModel>>(content);
-                return View(proveedores);
-            }
-
-            ViewBag.Error = "No se pudieron cargar los proveedores de la API.";
-            return View(new List<ProveedorViewModel>());
-        }
-
-        // GET: /Administracion/CrearProveedor
-        [HttpGet]
-        public ActionResult CrearProveedor()
-        {
-            ViewBag.Title = "Crear Nuevo Proveedor";
-            return View(new ProveedorViewModel { Activo = true });
-        }
-
-        // POST: /Administracion/CrearProveedor
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CrearProveedor(ProveedorViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var jsonContent = new StringContent(
-                    JsonConvert.SerializeObject(model),
-                    Encoding.UTF8,
-                    "application/json"
-                );
-
-                var response = await _httpClient.PostAsync(API_BASE_URL + "proveedores/registrar", jsonContent);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = "Proveedor creado con éxito.";
-                    return RedirectToAction("Proveedores");
-                }
-
-                var errorContent = await response.Content.ReadAsStringAsync();
-                ModelState.AddModelError("", $"Error al guardar el proveedor: {errorContent}");
-            }
-
-            ViewBag.Title = "Crear Nuevo Proveedor";
-            return View(model);
-        }
-
-        // GET: /Administracion/EditarProveedor/{id}
-        [HttpGet]
-        public async Task<ActionResult> EditarProveedor(int id)
-        {
-            ViewBag.Title = "Editar Proveedor";
-            var response = await _httpClient.GetAsync(API_BASE_URL + $"proveedores/obtener/{id}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var proveedor = JsonConvert.DeserializeObject<ProveedorViewModel>(content);
-                return View(proveedor);
-            }
-
-            TempData["ErrorMessage"] = "Proveedor no encontrado o error de API.";
-            return RedirectToAction("Proveedores");
-        }
-
-        // POST: /Administracion/EditarProveedor
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> EditarProveedor(ProveedorViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var jsonContent = new StringContent(
-                    JsonConvert.SerializeObject(model),
-                    Encoding.UTF8,
-                    "application/json"
-                );
-
-                // Usamos PUT para actualizar
-                var response = await _httpClient.PutAsync(API_BASE_URL + $"proveedores/actualizar/{model.ProveedorID}", jsonContent);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = "Proveedor actualizado con éxito.";
-                    return RedirectToAction("Proveedores");
-                }
-
-                var errorContent = await response.Content.ReadAsStringAsync();
-                ModelState.AddModelError("", $"Error al actualizar el proveedor: {errorContent}");
-            }
-            ViewBag.Title = "Editar Proveedor";
-            return View(model);
-        }
-
-        // GET: /Administracion/EliminarProveedor/{id}
-        // Usamos GET para la acción simple de eliminar
-        [HttpGet]
-        public async Task<ActionResult> EliminarProveedor(int id)
-        {
-            var response = await _httpClient.DeleteAsync(API_BASE_URL + $"proveedores/eliminar/{id}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                TempData["SuccessMessage"] = "Proveedor eliminado con éxito.";
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                TempData["ErrorMessage"] = $"Error al eliminar el proveedor: {errorContent}";
-            }
-
-            return RedirectToAction("Proveedores");
-        }
-
-        // GESTIÓN DE PRODUCTOS
-
-        [HttpGet]
-        public async Task<ActionResult> Productos()
-        {
-            ViewBag.Message = "Panel de Administración de Productos";
-
-            try
-            {
-                var response = await _httpClient.GetAsync(API_BASE_URL + "productos/obtener");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var productos = JsonConvert.DeserializeObject<List<Producto>>(content);
-                    return View(productos);
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return View(new List<Producto>());
-                }
-                else
-                {
-                    ModelState.AddModelError("", $"Error al cargar productos de la API. Código: {response.StatusCode}");
-                    return View(new List<Producto>());
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                ModelState.AddModelError("", $"Error de conexión con la API: {ex.Message}");
-                return View(new List<Producto>());
-            }
-        }
-
-        // Muestra el formulario vacío para registrar un nuevo producto.
-        [HttpGet]
-        public async Task<ActionResult> RegistrarProducto() // Ahora debe ser async para cargar proveedores
-        {
-            ViewBag.Proveedores = await ObtenerListaProveedores(); // Cargar la lista para el dropdown
-            return View(new Producto { Activo = true, PrecioUnitario = 0.00M, Stock = 0 });
-        }
-
-        // Envía el nuevo producto a la API para ser guardado.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> RegistrarProducto(Producto producto)
-        {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Proveedores = await ObtenerListaProveedores(); // Recargar si falla la validación
-                return View(producto);
-            }
-
-            try
-            {
-                var jsonContent = JsonConvert.SerializeObject(producto);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync(API_BASE_URL + "productos/registrar", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = "Producto registrado exitosamente!";
-                    return RedirectToAction("Productos");
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    ModelState.AddModelError("", $"Error al registrar el producto. Código: {response.StatusCode}. Detalle: {errorContent}");
-                    ViewBag.Proveedores = await ObtenerListaProveedores();
-                    return View(producto);
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                ModelState.AddModelError("", $"Error de conexión con la API: {ex.Message}");
-                ViewBag.Proveedores = await ObtenerListaProveedores();
-                return View(producto);
-            }
-        }
-
-        // EditarProducto (GET)
-        [HttpGet]
-        public async Task<ActionResult> EditarProducto(int id)
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync(API_BASE_URL + $"productos/obtener/{id}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var producto = JsonConvert.DeserializeObject<Producto>(content);
-
-                    ViewBag.Proveedores = await ObtenerListaProveedores(); // Cargar lista de proveedores
-                    return View(producto);
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    TempData["ErrorMessage"] = $"Producto ID {id} no encontrado.";
-                    return RedirectToAction("Productos");
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = $"Error al cargar producto: Código {response.StatusCode}.";
-                    return RedirectToAction("Productos");
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                TempData["ErrorMessage"] = $"Error de conexión con la API: {ex.Message}";
-                return RedirectToAction("Productos");
-            }
-        }
-
-        // EditarProducto (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> EditarProducto(Producto producto)
-        {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Proveedores = await ObtenerListaProveedores(); // Recargar si falla la validación
-                return View(producto);
-            }
-
-            try
-            {
-                var jsonContent = JsonConvert.SerializeObject(producto);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PutAsync(API_BASE_URL + $"productos/actualizar/{producto.ProductoID}", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = $"Producto '{producto.Nombre}' actualizado exitosamente!";
-                    return RedirectToAction("Productos"); // Corregido de Index a Productos
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    ModelState.AddModelError("", $"Error al actualizar. Código: {response.StatusCode}. Detalle: {errorContent}");
-                    ViewBag.Proveedores = await ObtenerListaProveedores();
-                    return View(producto);
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                ModelState.AddModelError("", $"Error de conexión con la API: {ex.Message}");
-                ViewBag.Proveedores = await ObtenerListaProveedores();
-                return View(producto);
-            }
-        }
-
-        // FUNCIÓN AUXILIAR
-        // Función auxiliar para obtener proveedores de la API y prepararlos para el Dropdown
-        private async Task<SelectList> ObtenerListaProveedores()
-        {
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
+            var proveedores = new List<ProveedorViewModel>();
             try
             {
                 var response = await _httpClient.GetAsync(API_BASE_URL + "proveedores/obtener");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    // NOTA: Asegúrate de que este modelo Proveedor exista para la función auxiliar
-                    var proveedores = JsonConvert.DeserializeObject<List<Proveedor>>(content);
-
-                    // Crear SelectList para el Dropdown
-                    return new SelectList(proveedores, "ProveedorID", "Nombre");
+                    proveedores = JsonConvert.DeserializeObject<List<ProveedorViewModel>>(content);
                 }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error al obtener proveedores: {ex.Message}");
-            }
-            // Retorna lista vacía en caso de error
-            return new SelectList(new List<Proveedor>(), "ProveedorID", "Nombre");
+            catch { }
+            return View(proveedores);
         }
 
-        // GESTIÓN DE ÓRDENES
+        [HttpGet]
+        public ActionResult CrearProveedor() => View(new ProveedorViewModel { Activo = true });
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CrearProveedor(ProveedorViewModel model)
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            await _httpClient.PostAsync(API_BASE_URL + "proveedores/registrar", content);
+            return RedirectToAction("Proveedores");
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> EditarProveedor(int id)
+        {
+            var response = await _httpClient.GetAsync(API_BASE_URL + $"proveedores/obtener/{id}");
+            var prov = JsonConvert.DeserializeObject<ProveedorViewModel>(await response.Content.ReadAsStringAsync());
+            return View(prov);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditarProveedor(ProveedorViewModel model)
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            await _httpClient.PutAsync(API_BASE_URL + $"proveedores/actualizar/{model.ProveedorID}", content);
+            return RedirectToAction("Proveedores");
+        }
+
+        // ==========================================
+        // 3. GESTIÓN DE PRODUCTOS
+        // ==========================================
+        [HttpGet]
+        public async Task<ActionResult> Productos()
+        {
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
+            var productos = new List<Producto>();
+            var response = await _httpClient.GetAsync(API_BASE_URL + "productos/obtener");
+            if (response.IsSuccessStatusCode)
+            {
+                productos = JsonConvert.DeserializeObject<List<Producto>>(await response.Content.ReadAsStringAsync());
+            }
+            return View(productos);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> RegistrarProducto()
+        {
+            await CargarProveedoresEnViewBag();
+            return View(new Producto { Activo = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RegistrarProducto(Producto model)
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            await _httpClient.PostAsync(API_BASE_URL + "productos/registrar", content);
+            return RedirectToAction("Productos");
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> EditarProducto(int id)
+        {
+            await CargarProveedoresEnViewBag();
+            var response = await _httpClient.GetAsync(API_BASE_URL + $"productos/obtener/{id}");
+            var product = JsonConvert.DeserializeObject<Producto>(await response.Content.ReadAsStringAsync());
+            return View(product);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditarProducto(Producto model)
+        {
+            var json = JsonConvert.SerializeObject(model);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            await _httpClient.PutAsync(API_BASE_URL + $"productos/actualizar/{model.ProductoID}", content);
+            return RedirectToAction("Productos");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> DesactivarProducto(int id)
+        {
+            var response = await _httpClient.DeleteAsync(API_BASE_URL + $"productos/eliminar/{id}");
+            return Json(new { success = response.IsSuccessStatusCode });
+        }
+
+        // ==========================================
+        // 4. GESTIÓN DE ÓRDENES Y DETALLES
+        // ==========================================
         [HttpGet]
         public async Task<ActionResult> VerOrdenes()
         {
-            ViewBag.Message = "Listado de Órdenes de Compra";
-
-            try
-            {
-                // 1. Llamar al endpoint que obtiene todas las órdenes
-                var response = await _httpClient.GetAsync(API_BASE_URL + "ordenes/obtener");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    // Usamos Dictionary<string, object> o un modelo 'Orden' específico
-                    var ordenes = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(content);
-
-                    return View(ordenes);
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    ViewBag.InfoMessage = "Aún no hay órdenes registradas.";
-                    return View(new List<Dictionary<string, object>>());
-                }
-                else
-                {
-                    ModelState.AddModelError("", $"Error al cargar órdenes de la API. Código: {response.StatusCode}");
-                    return View(new List<Dictionary<string, object>>());
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                ModelState.AddModelError("", $"Error de conexión con la API: {ex.Message}");
-                return View(new List<Dictionary<string, object>>());
-            }
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
+            var response = await _httpClient.GetAsync(API_BASE_URL + "ordenes/obtener");
+            var content = await response.Content.ReadAsStringAsync();
+            var ordenes = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(content);
+            return View(ordenes);
         }
 
         [HttpGet]
         public async Task<ActionResult> VerDetalles(int id)
         {
+            if (Session["AdminID"] == null) return RedirectToAction("Index", "Login");
+
+            var viewModel = new OrdenDetallesViewModel
+            {
+                Orden = new Dictionary<string, object>(),
+                Detalles = new List<DetalleOrden>()
+            };
+
             try
             {
-                // 1. Obtener Encabezado de la Orden
-                var headerResponse = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/obtener/{id}");
-                if (!headerResponse.IsSuccessStatusCode)
+                // Petición 1: Datos generales de la orden
+                var respOrden = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/obtener/{id}");
+                if (respOrden.IsSuccessStatusCode)
                 {
-                    TempData["ErrorMessage"] = $"Orden ID {id} no encontrada o error al cargar encabezado.";
-                    return RedirectToAction("VerOrdenes");
-                }
-                var headerContent = await headerResponse.Content.ReadAsStringAsync();
-                var ordenHeader = JsonConvert.DeserializeObject<Dictionary<string, object>>(headerContent);
-
-                // 2. Obtener Detalles de la Orden
-                var detailsResponse = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/detalles/{id}");
-
-                List<DetalleOrden> detalles = new List<DetalleOrden>();
-                if (detailsResponse.IsSuccessStatusCode)
-                {
-                    var detailsContent = await detailsResponse.Content.ReadAsStringAsync();
-                    detalles = JsonConvert.DeserializeObject<List<DetalleOrden>>(detailsContent);
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Advertencia: No se pudieron cargar los productos (detalles) de la orden.");
+                    viewModel.Orden = JsonConvert.DeserializeObject<Dictionary<string, object>>(await respOrden.Content.ReadAsStringAsync());
                 }
 
-                var viewModel = new OrdenDetallesViewModel
+                // Petición 2: Desglose de productos de la orden
+                var respDetalles = await _httpClient.GetAsync(API_BASE_URL + $"ordenes/detalles/{id}");
+                if (respDetalles.IsSuccessStatusCode)
                 {
-                    Orden = ordenHeader,
-                    Detalles = detalles
-                };
-
-                ViewBag.Title = $"Detalles de Orden #{id}";
-                return View(viewModel);
+                    viewModel.Detalles = JsonConvert.DeserializeObject<List<DetalleOrden>>(await respDetalles.Content.ReadAsStringAsync());
+                }
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error de conexión con la API: {ex.Message}";
-                return RedirectToAction("VerOrdenes");
+                ModelState.AddModelError("", "Error al conectar con el servicio de órdenes: " + ex.Message);
             }
+
+            return View(viewModel);
+        }
+
+        // ==========================================
+        // AUXILIARES
+        // ==========================================
+        private async Task CargarProveedoresEnViewBag()
+        {
+            var resp = await _httpClient.GetAsync(API_BASE_URL + "proveedores/obtener");
+            if (resp.IsSuccessStatusCode)
+            {
+                var lista = JsonConvert.DeserializeObject<List<ProveedorViewModel>>(await resp.Content.ReadAsStringAsync());
+                ViewBag.Proveedores = new SelectList(lista, "ProveedorID", "Nombre");
+            }
+        }
+
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            return RedirectToAction("Index", "Login");
         }
     }
 }

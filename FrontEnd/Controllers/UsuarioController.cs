@@ -14,15 +14,19 @@ namespace FrontEnd.Controllers // Cambiado a FrontEnd para coincidir con tu proy
         private readonly string API_BASE_URL = ConfigurationManager.AppSettings["ApiBaseUrl"];
         private readonly HttpClient _httpClient = new HttpClient();
 
-        // GET: Usuario/Index
+        // GET: /Usuario/Index
         public ActionResult Index()
         {
+            // Verificación de seguridad: Si no hay sesión, al Login
             if (Session["UsuarioID"] == null)
             {
                 return RedirectToAction("Index", "Login");
             }
 
-            ViewBag.UserName = Session["UsuarioNombre"];
+            // Pasamos los datos a la vista para el saludo y el filtrado AJAX
+            ViewBag.UsuarioID = Session["UsuarioID"];
+            ViewBag.Nombre = Session["UsuarioNombre"];
+
             return View();
         }
 

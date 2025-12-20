@@ -11,31 +11,45 @@ namespace API.Repositories
 {
     public class AdministradorRepository
     {
-        // Instancia de tu clase de acceso a datos
         private readonly DBHelper _dbHelper = new DBHelper();
 
         public Administrador GetAdminByCredentials(string email, string password)
         {
             string storedProcedure = "PA_ValidarAdministrador";
 
+            // CORRECCIÓN: Los nombres de los parámetros deben coincidir EXACTAMENTE con el SQL
+            // Tu procedimiento espera @Email y @Password
             SqlParameter[] parameters = new SqlParameter[]
             {
-        new SqlParameter("@Correo", email), 
-        new SqlParameter("@Clave", password)
+                new SqlParameter("@Email", (object)email ?? DBNull.Value),
+                new SqlParameter("@Password", (object)password ?? DBNull.Value)
             };
 
-            DataTable dt = _dbHelper.ExecuteDataTable(storedProcedure, parameters);
-
-            if (dt.Rows.Count == 1)
+            try
             {
-                DataRow row = dt.Rows[0];
-                return new Administrador
+                DataTable dt = _dbHelper.ExecuteDataTable(storedProcedure, parameters);
+
+                if (dt != null && dt.Rows.Count > 0)
                 {
-                    AdminID = Convert.ToInt32(row["UsuarioID"]),
-                    Nombre = row["NombreCompleto"].ToString(),
-                    Email = row["Email"].ToString(),
-                };
+                    DataRow row = dt.Rows[0];
+                    return new Administrador
+                    {
+                        // Se usan los alias definidos en tu procedimiento (userId, nombre, role)
+                        AdminID = Convert.ToInt32(row["userId"]),
+                        Nombre = row["nombre"].ToString(),
+                        Rol = row["role"].ToString(),
+                        // Asignamos el email usado para el login
+                        Email = email,
+                        Activo = true
+                    };
+                }
             }
+            catch (Exception ex)
+            {
+                // Esto ayuda a capturar errores de conexión o de SQL durante la depuración
+                throw new Exception("Error en AdministradorRepository: " + ex.Message);
+            }
+
             return null;
         }
     }
